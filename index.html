@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Калькулятор налогов</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f6f8;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 400px;
+    padding: 28px 22px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  label {
+    display: block;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  input[type="number"]:focus {
+    border-color: #007aff;
+  }
+  button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 16px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
+    background: #007aff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active {
+    transform: scale(0.98);
+    background: #005bb5;
+  }
+  .results {
+    margin-top: 20px;
+    display: none;
+  }
+  .results.active {
+    display: block;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+  }
+  .result-row:last-child {
+    border-bottom: none;
+  }
+  .result-label {
+    color: #555;
+  }
+  .result-value {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 16px;
+  }
+  .result-value.total {
+    color: #007aff;
+    font-size: 18px;
+  }
+  .divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 8px 0;
+  }
+  .muted {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Калькулятор налогов</h1>
+    <label for="amount">Чистая сумма (что хочу получить)</label>
+    <input type="number" id="amount" placeholder="0.00 ₸" step="1" inputmode="decimal">
+    <button id="calcBtn">Рассчитать</button>
+
+    <div class="results" id="results">
+      <div class="result-row">
+        <span class="result-label">Чистая сумма:</span>
+        <span class="result-value" id="res-clean">0 ₸</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-row">
+        <span class="result-label">Сумма с налогом:</span>
+        <span class="result-value total" id="res-total">0 ₸</span>
+      </div>
+      <div class="muted">умножено на 1.312217</div>
+      <div class="divider"></div>
+      <div class="result-row">
+        <span class="result-label">НДС (16%):</span>
+        <span class="result-value" id="res-nds">0 ₸</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">КПН (10%):</span>
+        <span class="result-value" id="res-kpn">0 ₸</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const amountInput = document.getElementById('amount');
+    const calcBtn = document.getElementById('calcBtn');
+    const results = document.getElementById('results');
+    const resClean = document.getElementById('res-clean');
+    const resTotal = document.getElementById('res-total');
+    const resNds = document.getElementById('res-nds');
+    const resKpn = document.getElementById('res-kpn');
+
+    const COEF = 1.312217;
+    const NDS_RATE = 0.16;
+    const KPN_RATE = 0.10;
+
+    function fmt(num) {
+      return num.toLocaleString('ru-KZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₸';
+    }
+
+    calcBtn.addEventListener('click', () => {
+      const clean = parseFloat(amountInput.value);
+      if (isNaN(clean) || clean < 0) {
+        amountInput.focus();
+        return;
+      }
+
+      const total = clean * COEF;
+      const nds = total * NDS_RATE;
+      const kpn = total * KPN_RATE;
+
+      resClean.textContent = fmt(clean);
+      resTotal.textContent = fmt(total);
+      resNds.textContent = fmt(nds);
+      resKpn.textContent = fmt(kpn);
+      results.classList.add('active');
+    });
+
+    amountInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') calcBtn.click();
+    });
+  </script>
+</body>
+</html>
