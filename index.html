@@ -212,15 +212,27 @@
   }
 
   .purchase-form {
-    display: none;
     background: #f9fafb;
     border-radius: 12px;
     padding: 16px;
     margin-top: 32px;
     position: relative;
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+    max-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    transition: opacity .3s ease, transform .3s ease, max-height .3s ease, padding .3s ease;
+    pointer-events: none;
   }
   .purchase-form.active {
-    display: block;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    max-height: 600px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    pointer-events: auto;
   }
   .purchase-form label {
   }
