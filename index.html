@@ -340,15 +340,15 @@
     <label for="amount">Чистая сумма (что хочу получить)</label>
     <input type="number" id="amount" placeholder="0.00 ₸" step="1" inputmode="decimal">
 
-    <div class="switch-row">
-      <span class="switch-label">КПН считать за минусом налогов</span>
+    <button id="calcBtn">Рассчитать</button>
+
+    <div class="switch-row" id="kpnRow" style="display:none;">
+      <span class="switch-label">Чистый КПН</span>
       <label class="switch" for="kpnMinus">
         <input type="checkbox" id="kpnMinus">
         <span class="slider"></span>
       </label>
     </div>
-
-    <button id="calcBtn">Рассчитать</button>
 
     <div class="results" id="results">
       <div class="result-row no-border">
@@ -410,6 +410,11 @@
         <span class="result-label">КПН к уплате:</span>
         <span class="result-value negative" id="finalKpn">0 ₸</span>
       </div>
+      <div class="divider"></div>
+      <div class="result-row no-border">
+        <span class="result-label">Чистая прибыль:</span>
+        <span class="result-value positive" id="finalProfit">0 ₸</span>
+      </div>
     </div>
   </div>
 
@@ -417,6 +422,7 @@
     const amountInput = document.getElementById('amount');
     const calcBtn = document.getElementById('calcBtn');
     const addPurchaseBtn = document.getElementById('addPurchaseBtn');
+    const kpnRow = document.getElementById('kpnRow');
     const kpnMinus = document.getElementById('kpnMinus');
     const results = document.getElementById('results');
     const resTotal = document.getElementById('res-total');
@@ -437,6 +443,7 @@
     const finalTotals = document.getElementById('finalTotals');
     const finalNds = document.getElementById('finalNds');
     const finalKpn = document.getElementById('finalKpn');
+    const finalProfit = document.getElementById('finalProfit');
 
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
@@ -486,8 +493,9 @@
       resNds.textContent = fmt(nds);
       resKpn.textContent = fmt(kpn);
       results.classList.add('active');
+      kpnRow.style.display = 'flex';
 
-      return { total, nds, kpn };
+      return { clean, total, nds, kpn };
     }
 
     function updateFinalTotals() {
@@ -499,9 +507,12 @@
 
       const credit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - credit);
+      const totalPurchases = purchases.reduce((sum, p) => sum + p.amount, 0);
+      const profit = tax.clean - totalPurchases - tax.kpn - ndsToPay;
 
       finalNds.textContent = fmt(ndsToPay);
       finalKpn.textContent = fmt(tax.kpn);
+      finalProfit.textContent = fmt(profit);
       finalTotals.style.display = 'block';
     }
 
