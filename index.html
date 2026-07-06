@@ -36,6 +36,12 @@
     color: #1a1a1a;
     margin: 24px 0 12px;
   }
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin: 16px 0 8px;
+  }
   label {
     display: block;
     font-size: 14px;
@@ -159,6 +165,19 @@
     margin-top: 0;
     flex-shrink: 0;
   }
+  button.link {
+    background: transparent;
+    color: #007aff;
+    border: none;
+    font-size: 15px;
+    text-align: left;
+    padding: 10px 0;
+    margin-top: 4px;
+  }
+  button.link:active {
+    background: transparent;
+    color: #005bb5;
+  }
 
   .results {
     margin-top: 20px;
@@ -176,6 +195,9 @@
     font-size: 15px;
   }
   .result-row:last-child {
+    border-bottom: none;
+  }
+  .result-row.no-border {
     border-bottom: none;
   }
   .result-label {
@@ -201,12 +223,6 @@
     background: #e0e0e0;
     margin: 8px 0;
   }
-  .muted {
-    font-size: 12px;
-    color: #888;
-    text-align: center;
-    margin-top: 4px;
-  }
 
   .purchase-form {
     display: none;
@@ -225,6 +241,18 @@
     margin-top: 0;
   }
 
+  .product-row {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .product-row .remove-product {
+    margin-top: 8px;
+    width: 100%;
+  }
+
   .purchase-list {
     margin-top: 16px;
   }
@@ -239,11 +267,26 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 10px;
+    margin-bottom: 10px;
   }
   .purchase-name {
     font-weight: 600;
     color: #1a1a1a;
     word-break: break-word;
+  }
+  .purchase-products {
+    margin: 8px 0;
+  }
+  .product-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #555;
+    padding: 4px 0;
+    border-bottom: 1px dashed #ddd;
+  }
+  .product-line:last-child {
+    border-bottom: none;
   }
   .purchase-meta {
     display: flex;
@@ -264,7 +307,6 @@
     border-radius: 8px;
     background: #e6f2ff;
     color: #007aff;
-    margin-top: 8px;
   }
   .empty {
     text-align: center;
@@ -280,6 +322,15 @@
   }
   .totals-box .result-row {
     border-color: #d6e8ff;
+  }
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .form-actions button {
+    flex: 1;
+    margin-top: 0;
   }
 </style>
 </head>
@@ -300,7 +351,7 @@
     <button id="calcBtn">Рассчитать</button>
 
     <div class="results" id="results">
-      <div class="result-row">
+      <div class="result-row no-border">
         <span class="result-label">Сумма с налогом:</span>
         <span class="result-value total" id="res-total">0 ₸</span>
       </div>
@@ -318,29 +369,25 @@
 
     <div class="purchase-form" id="purchaseForm">
       <h2>Новый закуп</h2>
-      <label for="pName">Название / поставщик</label>
-      <input type="text" id="pName" placeholder="Например, ТОО Поставщик">
 
-      <label for="pAmount">Сумма закупа</label>
-      <input type="number" id="pAmount" placeholder="0.00 ₸" step="1" inputmode="decimal">
+      <div id="productsContainer"></div>
+
+      <button id="addProductBtn" class="link">+ Добавить товар</button>
 
       <div class="checkbox-row">
         <input type="checkbox" id="pHasNds">
         <label for="pHasNds" style="margin:0;font-weight:500;">У поставщика есть НДС</label>
       </div>
 
-      <div id="ndsBlock" style="display:none;">
-        <label for="pNds">НДС (16%)</label>
-        <input type="number" id="pNds" placeholder="0.00 ₸" step="1" inputmode="decimal">
-
-        <div class="checkbox-row">
-          <input type="checkbox" id="pNdsCredit">
-          <label for="pNdsCredit" style="margin:0;font-weight:500;">Взять НДС в зачёт</label>
-        </div>
+      <div class="checkbox-row" id="ndsCreditRow" style="display:none;">
+        <input type="checkbox" id="pNdsCredit">
+        <label for="pNdsCredit" style="margin:0;font-weight:500;">Взять НДС в зачёт</label>
       </div>
 
-      <button id="savePurchaseBtn">Сохранить закуп</button>
-      <button id="cancelPurchaseBtn" class="secondary" style="margin-top:8px;">Отмена</button>
+      <div class="form-actions">
+        <button id="savePurchaseBtn">Сохранить</button>
+        <button id="cancelPurchaseBtn" class="secondary">Отмена</button>
+      </div>
     </div>
 
     <h2 id="listTitle" style="display:none;">Закупы</h2>
@@ -380,12 +427,11 @@
     const resKpn = document.getElementById('res-kpn');
 
     const purchaseForm = document.getElementById('purchaseForm');
-    const pName = document.getElementById('pName');
-    const pAmount = document.getElementById('pAmount');
+    const productsContainer = document.getElementById('productsContainer');
+    const addProductBtn = document.getElementById('addProductBtn');
     const pHasNds = document.getElementById('pHasNds');
-    const pNds = document.getElementById('pNds');
     const pNdsCredit = document.getElementById('pNdsCredit');
-    const ndsBlock = document.getElementById('ndsBlock');
+    const ndsCreditRow = document.getElementById('ndsCreditRow');
     const savePurchaseBtn = document.getElementById('savePurchaseBtn');
     const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
     const purchaseList = document.getElementById('purchaseList');
@@ -399,9 +445,10 @@
 
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
-    const STORAGE_KEY = 'nds_purchases_v1';
+    const STORAGE_KEY = 'nds_purchases_v2';
 
     let purchases = [];
+    let tempProducts = [];
 
     function fmt(num) {
       return num.toLocaleString('ru-KZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₸';
@@ -485,12 +532,26 @@
 
         const el = document.createElement('div');
         el.className = 'purchase-item';
+
+        let productsHtml = '';
+        if (p.products && p.products.length > 0) {
+          productsHtml = `<div class="purchase-products">` +
+            p.products.map(prod => `
+              <div class="product-line">
+                <span>${escapeHtml(prod.name || 'Товар')}</span>
+                <span>${fmt(prod.amount)}</span>
+              </div>
+            `).join('') +
+          `</div>`;
+        }
+
         el.innerHTML = `
           <div class="purchase-header">
             <div>
-              <div class="purchase-name">${escapeHtml(p.name || 'Без названия')}</div>
+              <div class="purchase-name">Закуп #${index + 1}</div>
+              ${productsHtml}
               <div class="purchase-meta">
-                <span>Сумма: ${fmt(p.amount)}</span>
+                <span>Итого: ${fmt(p.amount)}</span>
                 ${p.hasNds ? `<span>НДС: ${fmt(p.nds)}</span>` : ''}
               </div>
               ${p.ndsCredit ? '<span class="badge">НДС в зачёт</span>' : ''}
@@ -523,13 +584,69 @@
       return div.innerHTML;
     }
 
+    function createProductRow(index) {
+      const div = document.createElement('div');
+      div.className = 'product-row';
+      div.dataset.index = index;
+      div.innerHTML = `
+        <label>Название товара</label>
+        <input type="text" class="prod-name" placeholder="Например, Бумага A4">
+        <label style="margin-top:10px;">Сумма</label>
+        <input type="number" class="prod-amount" placeholder="0.00 ₸" step="1" inputmode="decimal">
+        ${index > 0 ? `<button class="secondary small remove-product">Удалить товар</button>` : ''}
+      `;
+      return div;
+    }
+
+    function renderProducts() {
+      productsContainer.innerHTML = '';
+      tempProducts.forEach((_, idx) => {
+        const row = createProductRow(idx);
+        productsContainer.appendChild(row);
+      });
+
+      // restore values
+      tempProducts.forEach((prod, idx) => {
+        const row = productsContainer.children[idx];
+        if (row) {
+          row.querySelector('.prod-name').value = prod.name || '';
+          row.querySelector('.prod-amount').value = prod.amount ? prod.amount.toString() : '';
+        }
+      });
+
+      attachProductListeners();
+    }
+
+    function attachProductListeners() {
+      productsContainer.querySelectorAll('.prod-name, .prod-amount').forEach(input => {
+        input.addEventListener('input', updateTempProducts);
+      });
+      productsContainer.querySelectorAll('.remove-product').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const row = e.target.closest('.product-row');
+          const idx = parseInt(row.dataset.index);
+          tempProducts.splice(idx, 1);
+          renderProducts();
+        });
+      });
+    }
+
+    function updateTempProducts() {
+      tempProducts = [];
+      productsContainer.querySelectorAll('.product-row').forEach(row => {
+        tempProducts.push({
+          name: row.querySelector('.prod-name').value.trim(),
+          amount: parseFloat(row.querySelector('.prod-amount').value) || 0
+        });
+      });
+    }
+
     function resetForm() {
-      pName.value = '';
-      pAmount.value = '';
+      tempProducts = [{ name: '', amount: 0 }];
+      renderProducts();
       pHasNds.checked = false;
-      pNds.value = '';
       pNdsCredit.checked = false;
-      ndsBlock.style.display = 'none';
+      ndsCreditRow.style.display = 'none';
     }
 
     calcBtn.addEventListener('click', () => {
@@ -551,7 +668,8 @@
     addPurchaseBtn.addEventListener('click', () => {
       purchaseForm.classList.add('active');
       addPurchaseBtn.style.display = 'none';
-      pName.focus();
+      resetForm();
+      productsContainer.querySelector('.prod-name').focus();
     });
 
     cancelPurchaseBtn.addEventListener('click', () => {
@@ -560,38 +678,40 @@
       resetForm();
     });
 
+    addProductBtn.addEventListener('click', () => {
+      updateTempProducts();
+      tempProducts.push({ name: '', amount: 0 });
+      renderProducts();
+    });
+
     pHasNds.addEventListener('change', () => {
-      ndsBlock.style.display = pHasNds.checked ? 'block' : 'none';
-      if (pHasNds.checked) {
-        const amount = parseFloat(pAmount.value) || 0;
-        pNds.value = (amount * NDS_RATE).toFixed(2);
-      } else {
-        pNds.value = '';
+      ndsCreditRow.style.display = pHasNds.checked ? 'flex' : 'none';
+      if (!pHasNds.checked) {
         pNdsCredit.checked = false;
       }
     });
 
-    pAmount.addEventListener('input', () => {
-      if (pHasNds.checked) {
-        const amount = parseFloat(pAmount.value) || 0;
-        pNds.value = (amount * NDS_RATE).toFixed(2);
-      }
-    });
-
     savePurchaseBtn.addEventListener('click', () => {
-      const name = pName.value.trim();
-      const amount = parseFloat(pAmount.value);
+      updateTempProducts();
 
-      if (!name || isNaN(amount) || amount <= 0) {
-        pName.focus();
+      const validProducts = tempProducts.filter(p => p.name && p.amount > 0);
+      if (validProducts.length === 0) {
+        productsContainer.querySelector('.prod-name').focus();
         return;
       }
 
+      const amount = validProducts.reduce((sum, p) => sum + p.amount, 0);
       const hasNds = pHasNds.checked;
-      const nds = hasNds ? (parseFloat(pNds.value) || amount * NDS_RATE) : 0;
+      const nds = hasNds ? amount * NDS_RATE : 0;
       const ndsCredit = hasNds && pNdsCredit.checked;
 
-      purchases.push({ name, amount, hasNds, nds, ndsCredit });
+      purchases.push({
+        products: validProducts,
+        amount,
+        hasNds,
+        nds,
+        ndsCredit
+      });
       savePurchases();
       renderPurchases();
 
