@@ -518,11 +518,13 @@
       const purchasesSum = purchases.reduce((sum, p) => sum + p.amount, 0);
       const ndsCredit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - ndsCredit);
+      const kpnBase = amount - tax.nds - purchasesSum;
+      const kpnToPay = Math.max(0, kpnBase * KPN_RATE);
 
       finalNds.textContent = fmt(ndsToPay);
-      finalKpn.textContent = fmt(tax.kpn);
+      finalKpn.textContent = fmt(kpnToPay);
       finalTotal.textContent = fmt(tax.total);
-      finalProfit.textContent = fmt(Math.max(0, tax.total - purchasesSum));
+      finalProfit.textContent = fmt(Math.max(0, amount - tax.nds - kpnToPay - purchasesSum));
       finalTotals.style.display = 'block';
 
       totalPurchases.textContent = fmt(purchasesSum);
