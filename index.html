@@ -508,7 +508,7 @@
       const credit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - credit);
       const totalPurchases = purchases.reduce((sum, p) => sum + p.amount, 0);
-      const profit = tax.clean - totalPurchases - tax.kpn - ndsToPay;
+      const profit = tax.total - totalPurchases - tax.kpn - ndsToPay;
 
       finalNds.textContent = fmt(ndsToPay);
       finalKpn.textContent = fmt(tax.kpn);
