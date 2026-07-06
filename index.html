@@ -340,10 +340,6 @@
     <div class="purchase-list" id="purchaseList"></div>
 
     <div class="totals-box" id="purchaseTotals" style="display:none;">
-      <div class="checkbox-row" style="margin:0 0 12px;">
-        <input type="checkbox" id="globalInclusiveNds">
-        <label for="globalInclusiveNds" style="margin:0;font-weight:500;">В том числе НДС</label>
-      </div>
       <div class="result-row">
         <span class="result-label">Всего закупов:</span>
         <span class="result-value" id="totalPurchases">0 ₸</span>
@@ -394,7 +390,6 @@
     const purchaseList = document.getElementById('purchaseList');
     const listTitle = document.getElementById('listTitle');
     const purchaseTotals = document.getElementById('purchaseTotals');
-    const globalInclusiveNds = document.getElementById('globalInclusiveNds');
     const totalPurchases = document.getElementById('totalPurchases');
     const totalNdsCredit = document.getElementById('totalNdsCredit');
     const finalTotals = document.getElementById('finalTotals');
@@ -469,27 +464,8 @@
       const tax = calculateTaxes(clean);
       lastTax = tax;
 
-      const globalInclusive = globalInclusiveNds.checked;
-
-      let purchasesSum = 0;
-      let ndsCredit = 0;
-
-      purchases.forEach(p => {
-        if (p.hasNds) {
-          if (globalInclusive) {
-            // сумма товара уже включает НДС
-            purchasesSum += p.amount;
-            ndsCredit += p.nds;
-          } else {
-            // сумма товара без НДС, прибавляем НДС сверху
-            purchasesSum += p.amount + p.nds;
-            ndsCredit += p.nds;
-          }
-        } else {
-          purchasesSum += p.amount;
-        }
-      });
-
+      const purchasesSum = purchases.reduce((sum, p) => sum + p.amount, 0);
+      const ndsCredit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - ndsCredit);
 
       // КПН считаем от прибыли с учётом закупов
@@ -571,10 +547,6 @@
     kpnMinus.addEventListener('change', () => {
       quickCalculate();
       if (purchases.length > 0) updateFinalTotals();
-    });
-
-    globalInclusiveNds.addEventListener('change', () => {
-      updateFinalTotals();
     });
 
     amountInput.addEventListener('keypress', (e) => {
