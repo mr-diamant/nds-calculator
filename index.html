@@ -107,6 +107,10 @@
   }
   input:checked + .slider { background-color: #007aff; }
   input:checked + .slider:before { transform: translateX(22px); }
+  .switch input:disabled + .slider { opacity: 0.5; cursor: default; pointer-events: none; }
+  .switch input:disabled + .slider:before { cursor: default; }
+  .switch input:disabled { pointer-events: none; }
+  .switch-disabled { opacity: 0.5; pointer-events: none; }
 
   button {
     width: 100%;
@@ -514,6 +518,7 @@
           pName.value = p.name;
           pAmount.value = p.amount.toFixed(2);
           pHasNds.checked = p.hasNds;
+          updateNdsSwitchState();
           pNameAutocomplete.style.display = 'none';
           pAmount.focus();
         });
@@ -640,6 +645,7 @@
       pAmount.value = '';
       pHasNds.checked = false;
       hideAutocomplete();
+      updateNdsSwitchState();
     }
 
     calcBtn.addEventListener('click', () => {
@@ -671,6 +677,18 @@
     pHasNds.addEventListener('change', () => {
       calculate();
     });
+
+    function updateNdsSwitchState() {
+      if (pOyr.checked) {
+        pHasNds.disabled = false;
+      } else {
+        pHasNds.checked = false;
+        pHasNds.disabled = true;
+      }
+      calculate();
+    }
+
+    pOyr.addEventListener('change', updateNdsSwitchState);
 
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#pName') && !e.target.closest('#pNameAutocomplete')) {
