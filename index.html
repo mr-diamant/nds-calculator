@@ -5,58 +5,167 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Калькулятор налогов</title>
 <style>
+  /* ===== CSS Variables — Light Theme (default) ===== */
+  :root {
+    --bg: #f2f2f7;
+    --card-bg: #ffffff;
+    --text-primary: #000000;
+    --text-secondary: #8e8e93;
+    --text-tertiary: #c7c7cc;
+    --accent: #007aff;
+    --accent-pressed: #0051d5;
+    --separator: #e5e5ea;
+    --input-bg: #f2f2f7;
+    --input-border: #d1d1d6;
+    --switch-on: #34c759;
+    --switch-off: #e9e9ea;
+    --danger: #ff3b30;
+    --positive: #34c759;
+    --shadow: 0 2px 16px rgba(0,0,0,0.06);
+    --form-bg: #f2f2f7;
+    --totals-bg: #ecf5ff;
+    --totals-border: #d6e8ff;
+    --autocomplete-bg: #ffffff;
+    --autocomplete-hover: #f0f7ff;
+    --autocomplete-border: #e5e5ea;
+    --shadow-autocomplete: 0 4px 16px rgba(0,0,0,0.10);
+    --radius-card: 20px;
+    --radius-input: 12px;
+    --radius-button: 14px;
+    --radius-item: 14px;
+  }
+
+  /* ===== Dark Theme — auto via prefers-color-scheme ===== */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #000000;
+      --card-bg: #1c1c1e;
+      --text-primary: #ffffff;
+      --text-secondary: #8e8e93;
+      --text-tertiary: #48484a;
+      --accent: #0a84ff;
+      --accent-pressed: #0060df;
+      --separator: #38383a;
+      --input-bg: #2c2c2e;
+      --input-border: #3a3a3c;
+      --switch-on: #30d158;
+      --switch-off: #39393d;
+      --danger: #ff453a;
+      --positive: #30d158;
+      --shadow: 0 2px 16px rgba(0,0,0,0.4);
+      --form-bg: #2c2c2e;
+      --totals-bg: #1c2128;
+      --totals-border: #2c2c2e;
+      --autocomplete-bg: #2c2c2e;
+      --autocomplete-hover: #3a3a3c;
+      --autocomplete-border: #3a3a3c;
+      --shadow-autocomplete: 0 4px 16px rgba(0,0,0,0.4);
+    }
+  }
+
+  /* ===== Dark Theme — manual override ===== */
+  html[data-theme="dark"] {
+    --bg: #000000;
+    --card-bg: #1c1c1e;
+    --text-primary: #ffffff;
+    --text-secondary: #8e8e93;
+    --text-tertiary: #48484a;
+    --accent: #0a84ff;
+    --accent-pressed: #0060df;
+    --separator: #38383a;
+    --input-bg: #2c2c2e;
+    --input-border: #3a3a3c;
+    --switch-on: #30d158;
+    --switch-off: #39393d;
+    --danger: #ff453a;
+    --positive: #30d158;
+    --shadow: 0 2px 16px rgba(0,0,0,0.4);
+    --form-bg: #2c2c2e;
+    --totals-bg: #1c2128;
+    --totals-border: #2c2c2e;
+    --autocomplete-bg: #2c2c2e;
+    --autocomplete-hover: #3a3a3c;
+    --autocomplete-border: #3a3a3c;
+    --shadow-autocomplete: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  /* ===== Base ===== */
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #f5f6f8;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
     padding: 24px 16px;
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
   }
+
+  /* ===== Card ===== */
   .card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    background: var(--card-bg);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow);
     width: 100%;
     max-width: 420px;
     padding: 28px 22px;
+    position: relative;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
   }
+
+  /* ===== Typography ===== */
   h1 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #1a1a1a;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
     margin-bottom: 20px;
     text-align: center;
+    letter-spacing: -0.3px;
   }
+
   h2 {
     font-size: 17px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-primary);
     margin: 24px 0 12px;
+    letter-spacing: -0.2px;
   }
+
   label {
     display: block;
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
     font-weight: 500;
   }
+
+  /* ===== Inputs ===== */
   input[type="number"], input[type="text"] {
     width: 100%;
     padding: 14px 16px;
     font-size: 17px;
-    border: 1px solid #a4a4a4;
-    border-radius: 12px;
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    border-radius: var(--radius-input);
+    color: var(--text-primary);
     outline: none;
-    transition: border-color .2s;
+    transition: border-color 0.2s, background-color 0.3s ease;
     -webkit-appearance: none;
   }
+
   input[type="number"]:focus, input[type="text"]:focus {
-    border-color: #007aff;
+    border-color: var(--accent);
   }
 
+  input[type="number"]::placeholder, input[type="text"]::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  /* ===== Switches (iOS-style) ===== */
   .switch-inline {
     display: flex;
     justify-content: space-between;
@@ -65,105 +174,119 @@
     margin-top: 16px;
     padding: 8px 0;
   }
+
   .switch-inline .switch-label {
     font-size: 15px;
-    color: #555;
+    color: var(--text-primary);
     font-weight: 500;
   }
+
   .switch-group {
     display: flex;
     align-items: center;
     gap: 12px;
   }
+
   .switch {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 28px;
+    width: 51px;
+    height: 31px;
     flex-shrink: 0;
-    margin-top: 0;
-    margin-bottom: 0;
+    margin: 0;
   }
+
   .switch input { opacity: 0; width: 0; height: 0; }
+
   .slider {
     position: absolute;
     cursor: pointer;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #ccc;
-    border-radius: 28px;
-    transition: .2s;
+    background-color: var(--switch-off);
+    border-radius: 31px;
+    transition: background-color 0.25s ease;
   }
+
   .slider:before {
     position: absolute;
     content: "";
-    height: 22px;
-    width: 22px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #fff;
+    height: 27px;
+    width: 27px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #ffffff;
     border-radius: 50%;
-    transition: .2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.25s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
   }
-  input:checked + .slider { background-color: #007aff; }
-  input:checked + .slider:before { transform: translateX(22px); }
+
+  input:checked + .slider { background-color: var(--switch-on); }
+  input:checked + .slider:before { transform: translateX(20px); }
   .switch input:disabled + .slider { opacity: 0.5; cursor: default; pointer-events: none; }
-  .switch input:disabled + .slider:before { cursor: default; }
   .switch input:disabled { pointer-events: none; }
   .switch-disabled { opacity: 0.5; pointer-events: none; }
 
+  /* ===== Buttons ===== */
   button {
     width: 100%;
     margin-top: 16px;
-    padding: 16px;
+    padding: 15px;
     font-size: 17px;
     font-weight: 600;
-    color: #fff;
-    background: #007aff;
+    color: #ffffff;
+    background: var(--accent);
     border: none;
-    border-radius: 12px;
+    border-radius: var(--radius-button);
     cursor: pointer;
-    transition: background .2s, transform .1s;
+    transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
     -webkit-tap-highlight-color: transparent;
   }
+
   button:active {
-    transform: scale(0.98);
-    background: #005bb5;
+    transform: scale(0.97);
+    background: var(--accent-pressed);
+    opacity: 0.9;
   }
+
   button.secondary {
-    background: #fff;
-    color: #007aff;
-    border: 1px solid #007aff;
+    background: transparent;
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
     padding: 10px;
-    font-weight: 300;
-    transition: opacity .3s ease, transform .3s ease;
+    font-weight: 500;
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s;
   }
+
   button.secondary:active {
-    background: #f0f7ff;
+    background: var(--input-bg);
+    opacity: 0.7;
   }
+
   #addPurchaseBtn {
     opacity: 0;
     transform: translateY(-8px);
-    transition: opacity .3s ease, transform .3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     height: 0;
     margin: 0;
     padding: 0;
     border: 0;
     overflow: hidden;
   }
+
   #addPurchaseBtn.show {
     opacity: 1;
     transform: translateY(0);
     height: auto;
     padding: 10px;
-    border: 1px solid #007aff;
+    border: 1.5px solid var(--accent);
     margin-top: 0;
   }
+
   button.danger {
     background: transparent;
-    color: #999;
+    color: var(--text-tertiary);
     border: none;
-    font-size: 18px;
+    font-size: 22px;
     padding: 0;
     width: 32px;
     height: 32px;
@@ -174,65 +297,82 @@
     justify-content: center;
     flex-shrink: 0;
     margin-top: 0;
+    transition: background-color 0.2s, color 0.2s;
   }
+
   button.danger:active {
-    background: #f0f0f0;
+    background: var(--input-bg);
+    color: var(--danger);
   }
+
   button.small {
     width: auto;
-    padding: 8px 12px;
+    padding: 8px 14px;
     font-size: 13px;
     margin-top: 0;
     flex-shrink: 0;
   }
 
+  /* ===== Results ===== */
   .results {
     margin-top: 20px;
     display: none;
   }
+
   .results.active {
     display: block;
   }
+
   .result-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #eee;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--separator);
     font-size: 15px;
   }
+
   .result-row:last-child {
     border-bottom: none;
   }
+
   .result-row.no-border {
     border-bottom: none;
   }
+
   .result-label {
-    color: #555;
+    color: var(--text-secondary);
   }
+
   .result-value {
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-primary);
     font-size: 16px;
+    font-variant-numeric: tabular-nums;
   }
+
   .result-value.total {
-    color: #1a1a1a;
+    color: var(--text-primary);
   }
+
   .result-value.positive {
-    color: #34c759;
+    color: var(--positive);
   }
+
   .result-value.negative {
-    color: #1a1a1a;
+    color: var(--text-primary);
   }
+
   .divider {
     height: 1px;
-    background: #e0e0e0;
+    background: var(--separator);
     margin: 8px 0;
   }
 
+  /* ===== Purchase Form ===== */
   .purchase-form {
-    background: #f9fafb;
-    border-radius: 12px;
+    background: var(--form-bg);
+    border-radius: var(--radius-item);
     padding: 16px;
     margin-top: 0;
     position: relative;
@@ -242,9 +382,10 @@
     overflow: hidden;
     padding-top: 0;
     padding-bottom: 0;
-    transition: opacity .3s ease, transform .3s ease, max-height .3s ease, padding .3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease, padding 0.3s ease;
     pointer-events: none;
   }
+
   .purchase-form.active {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -253,6 +394,7 @@
     padding-bottom: 16px;
     pointer-events: auto;
   }
+
   .purchase-form label {
   }
   .purchase-form label:first-child {
@@ -261,111 +403,158 @@
     margin-left: 6px;
   }
 
+  /* ===== Purchase List & Items ===== */
   .purchase-list {
     margin-top: 16px;
   }
+
   .purchase-item {
-    background: #f9fafb;
-    border-radius: 12px;
+    background: var(--form-bg);
+    border-radius: var(--radius-item);
     padding: 14px;
     margin-bottom: 10px;
+    transition: background-color 0.3s ease;
   }
+
   .purchase-item.removing {
-    animation: itemOut .3s ease forwards;
+    animation: itemOut 0.3s ease forwards;
   }
-  @keyframes itemIn {
-    from { opacity: 0; transform: translateY(-10px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
+
   @keyframes itemOut {
     from { opacity: 1; transform: translateY(0) scale(1); max-height: 200px; }
     to   { opacity: 0; transform: translateX(20px) scale(0.97); max-height: 0; padding: 0; margin: 0; }
   }
+
   .purchase-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
   }
+
   .purchase-name {
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--text-primary);
     word-break: break-word;
+    font-size: 16px;
   }
+
   .purchase-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 8px 16px;
-    margin-top: 8px;
+    margin-top: 6px;
     font-size: 14px;
-    color: #555;
+    color: var(--text-secondary);
   }
+
   .purchase-meta span {
     white-space: nowrap;
   }
+
+  /* ===== Totals Box ===== */
   .totals-box {
-    background: #f0f7ff;
-    border-radius: 12px;
+    background: var(--totals-bg);
+    border: 1px solid var(--totals-border);
+    border-radius: var(--radius-item);
     padding: 16px;
     margin-top: 16px;
   }
+
   .totals-box .result-row {
-    border-color: #d6e8ff;
+    border-color: var(--totals-border);
   }
+
+  /* ===== Form Actions ===== */
   .form-actions {
     display: flex;
     gap: 10px;
     margin-top: 16px;
   }
+
   .form-actions button {
     flex: 1;
     margin-top: 0;
   }
+
+  /* ===== Autocomplete ===== */
   .autocomplete-list {
     position: absolute;
     z-index: 100;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
+    background: var(--autocomplete-bg);
+    border: 1px solid var(--autocomplete-border);
+    border-radius: var(--radius-input);
     margin-top: 4px;
     max-height: 220px;
     overflow-y: auto;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-autocomplete);
     display: none;
     width: calc(100% - 30px);
   }
+
   .autocomplete-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 10px 10px 12px;
     font-size: 15px;
-    color: #1a1a1a;
+    color: var(--text-primary);
     cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--separator);
   }
+
   .autocomplete-item:last-child {
     border-bottom: none;
   }
+
   .autocomplete-item:active,
   .autocomplete-item:hover {
-    background: #f0f7ff;
+    background: var(--autocomplete-hover);
   }
+
   .autocomplete-info {
     flex: 1;
     min-width: 0;
     padding-right: 8px;
   }
+
   .autocomplete-info small {
     display: block;
-    color: #888;
+    color: var(--text-secondary);
     font-size: 13px;
     margin-top: 2px;
+  }
+
+  /* ===== Theme Toggle ===== */
+  .theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    padding: 0;
+    margin: 0;
+    transition: background-color 0.3s ease, transform 0.2s, border-color 0.3s ease;
+    z-index: 10;
+    line-height: 1;
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.9);
   }
 </style>
 </head>
 <body>
   <div class="card">
+    <button class="theme-toggle" id="themeToggle" title="Сменить тему">🌙</button>
     <h1>Калькулятор налогов</h1>
     <label for="amount">Введите сумму</label>
     <input type="number" id="amount" placeholder="0.00 ₸" step="1" inputmode="decimal">
@@ -473,6 +662,27 @@
   </div>
 
   <script>
+    // ===== Theme Toggle =====
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('nds_theme');
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      themeToggle.textContent = '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const isDark = current === 'dark' ||
+        (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      const newTheme = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('nds_theme', newTheme);
+      themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    });
+
+    // ===== App =====
     const amountInput = document.getElementById('amount');
     const calcBtn = document.getElementById('calcBtn');
     const quickResults = document.getElementById('quickResults');
@@ -560,7 +770,7 @@
         item.innerHTML = `
           <div class="autocomplete-info">
             ${escapeHtml(p.name)}
-            <small style="color:${p.oyr ? 'inherit' : '#c44f4f'}">${fmt(p.amount)}${p.hasNds ? ', с НДС' : ''}</small>
+            <small style="color:${p.oyr ? 'inherit' : 'var(--danger)'}">${fmt(p.amount)}${p.hasNds ? ', с НДС' : ''}</small>
           </div>
           <button class="danger" data-name="${escapeHtml(p.name)}" title="Удалить">×</button>
         `;
@@ -637,7 +847,7 @@
       finalTotal.textContent = fmt(Math.max(0, amount - ndsToPay - kpnToPay));
       const profit = amount - ndsToPay - kpnToPay - purchasesSum;
       finalProfit.textContent = fmt(profit);
-      finalProfit.style.color = profit < 0 ? '#ff3b30' : '#34c759';
+      finalProfit.style.color = profit < 0 ? 'var(--danger)' : 'var(--positive)';
       finalTotals.style.display = currentItems.length > 0 ? 'block' : 'none';
 
       totalPurchases.textContent = fmt(purchasesSum);
@@ -669,7 +879,7 @@
             <div>
               <div class="purchase-name">${escapeHtml(p.name || 'Товар')}</div>
               <div class="purchase-meta">
-                <span style="color:${p.oyr ? 'inherit' : '#c44f4f'}">Сумма: ${fmt(p.amount)}</span>
+                <span style="color:${p.oyr ? 'inherit' : 'var(--danger)'}">Сумма: ${fmt(p.amount)}</span>
               </div>
               ${p.hasNds ? `<div class="purchase-meta"><span>НДС: ${fmt(p.amount * NDS_RATE / (1 + NDS_RATE))}</span></div>` : ''}
             </div>
