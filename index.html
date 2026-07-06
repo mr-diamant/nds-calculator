@@ -621,9 +621,8 @@
               <div class="purchase-name">${escapeHtml(p.name || 'Товар')}</div>
               <div class="purchase-meta">
                 <span>Сумма: ${fmt(p.amount)}</span>
-                ${p.hasNds ? `<span>НДС: ${fmt(p.nds)}</span>` : ''}
               </div>
-              ${p.hasNds ? '<span class="badge">С учётом НДС</span>' : ''}
+              ${p.hasNds ? `<div class="purchase-meta"><span>НДС: ${fmt(p.nds)}</span></div>` : ''}
             </div>
             <button class="danger" data-index="${index}" title="Удалить">×</button>
           </div>
