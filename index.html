@@ -487,7 +487,8 @@
 
     function calculateTaxes(amount) {
       const nds = amount * NDS_RATE / (1 + NDS_RATE);
-      const kpn = amount * KPN_RATE / (1 + KPN_RATE);
+      const kpnBase = amount - nds;
+      const kpn = kpnBase * KPN_RATE / (1 + KPN_RATE);
       const total = amount - nds - kpn;
       return { total, nds, kpn };
     }
