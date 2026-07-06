@@ -370,6 +370,23 @@
     <label for="amount">Введите сумму</label>
     <input type="number" id="amount" placeholder="0.00 ₸" step="1" inputmode="decimal">
 
+    <div class="form-row switch-inline">
+      <div class="switch-group">
+        <label class="switch" for="topNds">
+          <input type="checkbox" id="topNds">
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label">НДС внутри</span>
+      </div>
+      <div class="switch-group">
+        <label class="switch" for="topKpn">
+          <input type="checkbox" id="topKpn">
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label">КПН внутри</span>
+      </div>
+    </div>
+
     <button id="calcBtn">Рассчитать</button>
 
     <div class="results" id="quickResults">
