@@ -234,7 +234,7 @@
     background: #f9fafb;
     border-radius: 12px;
     padding: 16px;
-    margin-top: 32px;
+    margin-top: 0;
     position: relative;
     opacity: 0;
     transform: translateY(-12px) scale(0.98);
@@ -636,6 +636,8 @@
       if (currentItems.length === 0) {
         title.style.display = 'none';
         purchaseTotals.style.display = 'none';
+        addPurchaseBtn.classList.remove('show');
+        quickResults.classList.add('active');
         updateFinalTotals();
         return;
       }
