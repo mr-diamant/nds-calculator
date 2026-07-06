@@ -618,7 +618,9 @@
       finalNds.textContent = fmt(tax.nds);
       finalKpn.textContent = fmt(kpnToPay);
       finalTotal.textContent = fmt(Math.max(0, amount - ndsToPay - kpnToPay));
-      finalProfit.textContent = fmt(Math.max(0, amount - ndsToPay - kpnToPay - purchasesSum));
+      const profit = amount - ndsToPay - kpnToPay - purchasesSum;
+      finalProfit.textContent = fmt(profit);
+      finalProfit.style.color = profit < 0 ? '#ff3b30' : '#34c759';
       finalTotals.style.display = currentItems.length > 0 ? 'block' : 'none';
 
       totalPurchases.textContent = fmt(purchasesSum);
