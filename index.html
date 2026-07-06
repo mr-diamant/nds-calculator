@@ -136,9 +136,19 @@
     border: 1px solid #007aff;
     padding: 10px;
     font-weight: 300;
+    transition: opacity .3s ease, transform .3s ease;
   }
   button.secondary:active {
     background: #f0f7ff;
+  }
+  #addPurchaseBtn {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  #addPurchaseBtn.show {
+    opacity: 1;
+    transform: translateY(0);
   }
   button.danger {
     background: transparent;
@@ -250,6 +260,18 @@
     border-radius: 12px;
     padding: 14px;
     margin-bottom: 10px;
+    animation: itemIn .3s ease;
+  }
+  .purchase-item.removing {
+    animation: itemOut .3s ease forwards;
+  }
+  @keyframes itemIn {
+    from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes itemOut {
+    from { opacity: 1; transform: translateY(0) scale(1); max-height: 200px; }
+    to   { opacity: 0; transform: translateX(20px) scale(0.97); max-height: 0; padding: 0; margin: 0; }
   }
   .purchase-header {
     display: flex;
@@ -361,7 +383,7 @@
       <h2 id="listTitle" style="display:none;">Товары</h2>
     </div>
 
-    <button id="addPurchaseBtn" class="secondary" style="display:none;">Добавить товар</button>
+    <button id="addPurchaseBtn" class="secondary">Добавить товар</button>
 
     <div class="purchase-form" id="purchaseForm">
       <label for="pName" class="field-label">Название товара</label>
@@ -563,7 +585,7 @@
       qKpn.textContent = fmt(tax.kpn);
       qTotal.textContent = fmt(tax.total);
       quickResults.classList.add('active');
-      addPurchaseBtn.style.display = 'block';
+      addPurchaseBtn.classList.add('show');
 
       return tax;
     }
@@ -632,8 +654,12 @@
       document.querySelectorAll('.purchase-item button').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(e.target.dataset.index);
-          currentItems.splice(idx, 1);
-          renderPurchases();
+          const item = btn.closest('.purchase-item');
+          item.classList.add('removing');
+          setTimeout(() => {
+            currentItems.splice(idx, 1);
+            renderPurchases();
+          }, 300);
         });
       });
 
@@ -673,7 +699,7 @@
       if (!tax) return;
 
       quickResults.classList.remove('active');
-      addPurchaseBtn.style.display = 'none';
+      addPurchaseBtn.classList.remove('show');
       purchaseForm.classList.add('active');
       resetForm();
       pName.focus();
@@ -711,7 +737,7 @@
 
     cancelPurchaseBtn.addEventListener('click', () => {
       purchaseForm.classList.remove('active');
-      addPurchaseBtn.style.display = 'block';
+      addPurchaseBtn.classList.add('show');
       if (currentItems.length === 0) {
         quickResults.classList.add('active');
       }
@@ -738,7 +764,7 @@
       renderPurchases();
 
       purchaseForm.classList.remove('active');
-      addPurchaseBtn.style.display = 'block';
+      addPurchaseBtn.classList.add('show');
       resetForm();
     });
 
