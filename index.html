@@ -351,7 +351,7 @@
             <input type="checkbox" id="pHasNds">
             <span class="slider"></span>
           </label>
-          <span class="switch-label" id="ndsLabel">Без НДС</span>
+          <span class="switch-label" id="ndsLabel">НДС</span>
         </div>
         <div class="switch-group">
           <label class="switch" for="pOyr">
@@ -670,7 +670,7 @@
     });
 
     pHasNds.addEventListener('change', () => {
-      ndsLabel.textContent = pHasNds.checked ? 'С НДС' : 'Без НДС';
+      ndsLabel.textContent = pHasNds.checked ? 'С НДС' : 'НДС';
     });
 
     document.addEventListener('click', (e) => {
@@ -696,7 +696,7 @@
       }
 
       const hasNds = pHasNds.checked;
-      ndsLabel.textContent = hasNds ? 'С НДС' : 'Без НДС';
+      ndsLabel.textContent = hasNds ? 'С НДС' : 'НДС';
       const oyr = pOyr.checked;
       const nds = hasNds ? amount * NDS_RATE / (1 + NDS_RATE) : 0;
 
