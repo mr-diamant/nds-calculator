@@ -494,7 +494,7 @@
         item.innerHTML = `
           <div class="autocomplete-info">
             ${escapeHtml(p.name)}
-            <small>${fmt(p.amount)}${p.hasNds ? ', с НДС' : ''}</small>
+            <small style="color:${p.oyr ? 'inherit' : '#c44f4f'}">${fmt(p.amount)}${p.hasNds ? ', с НДС' : ''}</small>
           </div>
           <button class="danger" data-name="${escapeHtml(p.name)}" title="Удалить">×</button>
         `;
@@ -503,6 +503,7 @@
           pName.value = p.name;
           pAmount.value = p.amount.toFixed(2);
           pHasNds.checked = p.hasNds;
+          pOyr.checked = p.oyr;
           updateNdsSwitchState();
           pNameAutocomplete.style.display = 'none';
           pAmount.focus();
@@ -591,7 +592,7 @@
             <div>
               <div class="purchase-name">${escapeHtml(p.name || 'Товар')}</div>
               <div class="purchase-meta">
-                <span>Сумма: ${fmt(p.amount)}</span>
+                <span style="color:${p.oyr ? 'inherit' : '#c44f4f'}">Сумма: ${fmt(p.amount)}</span>
               </div>
               ${p.hasNds ? `<div class="purchase-meta"><span>НДС: ${fmt(p.amount * NDS_RATE / (1 + NDS_RATE))}</span></div>` : ''}
             </div>
