@@ -57,19 +57,17 @@
     border-color: #007aff;
   }
 
-  .checkbox-row {
+  .switch-inline {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    margin: 14px 0 4px;
-    font-size: 14px;
+    margin-top: 16px;
+    padding: 8px 0;
+  }
+  .switch-inline .switch-label {
+    font-size: 15px;
     color: #555;
     font-weight: 500;
-  }
-  .checkbox-row input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: #007aff;
   }
 
   button {
@@ -310,9 +308,12 @@
       <label for="pAmount" style="margin-top:12px;">Сумма</label>
       <input type="number" id="pAmount" placeholder="0.00 ₸" step="1" inputmode="decimal">
 
-      <div class="checkbox-row">
-        <input type="checkbox" id="pHasNds">
-        <label for="pHasNds" style="margin:0;font-weight:500;">С учётом НДС</label>
+      <div class="form-row switch-inline">
+        <span class="switch-label" id="ndsLabel">Без НДС</span>
+        <label class="switch" for="pHasNds">
+          <input type="checkbox" id="pHasNds">
+          <span class="slider"></span>
+        </label>
       </div>
 
       <div class="form-actions">
@@ -369,6 +370,7 @@
     const pNameAutocomplete = document.getElementById('pNameAutocomplete');
     const pAmount = document.getElementById('pAmount');
     const pHasNds = document.getElementById('pHasNds');
+    const ndsLabel = document.getElementById('ndsLabel');
     const savePurchaseBtn = document.getElementById('savePurchaseBtn');
     const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
     const purchaseList = document.getElementById('purchaseList');
@@ -620,6 +622,10 @@
       showAutocomplete(pName.value.trim());
     });
 
+    pHasNds.addEventListener('change', () => {
+      ndsLabel.textContent = pHasNds.checked ? 'С НДС' : 'Без НДС';
+    });
+
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#pName') && !e.target.closest('#pNameAutocomplete')) {
         hideAutocomplete();
@@ -643,6 +649,7 @@
       }
 
       const hasNds = pHasNds.checked;
+      ndsLabel.textContent = hasNds ? 'С НДС' : 'Без НДС';
       const nds = hasNds ? amount * NDS_RATE / (1 + NDS_RATE) : 0;
 
       purchases.push({ name, amount, hasNds, nds });
