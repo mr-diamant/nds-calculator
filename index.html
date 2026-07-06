@@ -145,10 +145,19 @@
     opacity: 0;
     transform: translateY(-8px);
     transition: opacity .3s ease, transform .3s ease;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
   }
   #addPurchaseBtn.show {
     opacity: 1;
     transform: translateY(0);
+    height: auto;
+    padding: 10px;
+    border: 1px solid #007aff;
+    margin-top: 0;
   }
   button.danger {
     background: transparent;
@@ -324,7 +333,7 @@
     overflow-y: auto;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     display: none;
-    width: calc(100% - 2px);
+    width: calc(100% - 30px);
   }
   .autocomplete-item {
     display: flex;
