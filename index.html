@@ -59,8 +59,9 @@
 
   .switch-inline {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 12px;
     margin-top: 16px;
     padding: 8px 0;
   }
@@ -309,11 +310,11 @@
       <input type="number" id="pAmount" placeholder="0.00 ₸" step="1" inputmode="decimal">
 
       <div class="form-row switch-inline">
-        <span class="switch-label" id="ndsLabel">Без НДС</span>
         <label class="switch" for="pHasNds">
           <input type="checkbox" id="pHasNds">
           <span class="slider"></span>
         </label>
+        <span class="switch-label" id="ndsLabel">Без НДС</span>
       </div>
 
       <div class="form-actions">
