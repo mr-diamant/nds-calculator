@@ -518,7 +518,8 @@
       const purchasesSum = purchases.reduce((sum, p) => sum + p.amount, 0);
       const ndsCredit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - ndsCredit);
-      const kpnBase = amount - tax.nds - purchasesSum;
+      const purchasesCleanSum = purchases.reduce((sum, p) => sum + (p.hasNds ? p.amount - p.nds : p.amount), 0);
+      const kpnBase = amount - tax.nds - purchasesCleanSum;
       const kpnToPay = Math.max(0, kpnBase * KPN_RATE);
 
       finalNds.textContent = fmt(tax.nds);
