@@ -57,37 +57,6 @@
     border-color: #007aff;
   }
 
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 24px;
-    flex-shrink: 0;
-  }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #ccc;
-    border-radius: 24px;
-    transition: .2s;
-  }
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #fff;
-    border-radius: 50%;
-    transition: .2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
-  input:checked + .slider { background-color: #007aff; }
-  input:checked + .slider:before { transform: translateX(20px); }
-
   .checkbox-row {
     display: flex;
     align-items: center;
@@ -195,16 +164,6 @@
   .result-value.negative {
     color: #ff3b30;
   }
-  .result-with-switch {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .switch-caption {
-    font-size: 12px;
-    color: #888;
-    font-weight: 500;
-  }
   .divider {
     height: 1px;
     background: #e0e0e0;
@@ -258,16 +217,6 @@
   }
   .purchase-meta span {
     white-space: nowrap;
-  }
-  .badge {
-    display: inline-block;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 8px;
-    background: #e6f2ff;
-    color: #007aff;
-    margin-top: 8px;
   }
   .totals-box {
     background: #f0f7ff;
@@ -341,11 +290,11 @@
         <span class="result-value" id="q-nds">0 ₸</span>
       </div>
       <div class="result-row no-border">
-        <span class="result-label">КПН (10%): <label class="switch" for="kpnMinus" title="Чистый КПН"><input type="checkbox" id="kpnMinus"><span class="slider"></span></label></span>
+        <span class="result-label">КПН (10%):</span>
         <span class="result-value" id="q-kpn">0 ₸</span>
       </div>
       <div class="result-row no-border">
-        <span class="result-label">Сумма с налогом:</span>
+        <span class="result-label">Итого:</span>
         <span class="result-value total" id="q-total">0 ₸</span>
       </div>
       <button id="addPurchaseBtn" class="secondary">Добавить товар</button>
@@ -396,7 +345,7 @@
         <span class="result-value negative" id="finalKpn">0 ₸</span>
       </div>
       <div class="result-row no-border">
-        <span class="result-label">Сумма с налогом:</span>
+        <span class="result-label">Итого:</span>
         <span class="result-value total" id="finalTotal">0 ₸</span>
       </div>
       <div class="result-row no-border">
@@ -409,7 +358,6 @@
   <script>
     const amountInput = document.getElementById('amount');
     const calcBtn = document.getElementById('calcBtn');
-    const kpnMinus = document.getElementById('kpnMinus');
     const quickResults = document.getElementById('quickResults');
     const qTotal = document.getElementById('q-total');
     const qNds = document.getElementById('q-nds');
@@ -440,7 +388,6 @@
     const PRODUCTS_KEY = 'nds_products_catalog';
 
     let purchases = [];
-    let lastTax = null;
 
     function fmt(num) {
       return num.toLocaleString('ru-KZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₸';
@@ -493,7 +440,6 @@
       let matches = [];
 
       if (query.length === 0) {
-        // при пустом запросе показываем 5 последних добавленных
         matches = catalog.slice(-5).reverse();
       } else {
         matches = catalog.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
@@ -539,60 +485,43 @@
       pNameAutocomplete.style.display = 'none';
     }
 
-    function calculateTaxes(clean) {
-      let total, nds, kpn;
-
-      if (kpnMinus.checked) {
-        const COEF = 1 / (1 - NDS_RATE - KPN_RATE * (1 - NDS_RATE));
-        total = clean * COEF;
-        nds = total * NDS_RATE;
-        kpn = (total - nds) * KPN_RATE;
-      } else {
-        const COEF = 1 / (1 - NDS_RATE - KPN_RATE);
-        total = clean * COEF;
-        nds = total * NDS_RATE;
-        kpn = total * KPN_RATE;
-      }
-
+    function calculateTaxes(amount) {
+      const nds = amount * NDS_RATE;
+      const kpn = amount * KPN_RATE;
+      const total = amount - nds - kpn;
       return { total, nds, kpn };
     }
 
     function quickCalculate() {
-      const clean = parseFloat(amountInput.value);
-      if (isNaN(clean) || clean < 0) {
+      const amount = parseFloat(amountInput.value);
+      if (isNaN(amount) || amount <= 0) {
         amountInput.focus();
         return null;
       }
 
-      const tax = calculateTaxes(clean);
-      qTotal.textContent = fmt(tax.total);
+      const tax = calculateTaxes(amount);
       qNds.textContent = fmt(tax.nds);
       qKpn.textContent = fmt(tax.kpn);
+      qTotal.textContent = fmt(tax.total);
       quickResults.classList.add('active');
 
       return tax;
     }
 
     function updateFinalTotals() {
-      const clean = parseFloat(amountInput.value);
-      if (isNaN(clean) || clean < 0) return;
+      const amount = parseFloat(amountInput.value);
+      if (isNaN(amount) || amount <= 0) return;
 
-      const tax = calculateTaxes(clean);
-      lastTax = tax;
+      const tax = calculateTaxes(amount);
 
       const purchasesSum = purchases.reduce((sum, p) => sum + p.amount, 0);
       const ndsCredit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - ndsCredit);
 
-      // КПН считаем от прибыли с учётом закупов
-      const base = tax.total - purchasesSum - ndsToPay;
-      const profit = Math.max(0, base / (1 + KPN_RATE));
-      const kpnToPay = profit * KPN_RATE;
-
-      finalTotal.textContent = fmt(tax.total);
       finalNds.textContent = fmt(ndsToPay);
-      finalKpn.textContent = fmt(kpnToPay);
-      finalProfit.textContent = fmt(profit);
+      finalKpn.textContent = fmt(tax.kpn);
+      finalTotal.textContent = fmt(tax.total);
+      finalProfit.textContent = fmt(Math.max(0, tax.total - purchasesSum));
       finalTotals.style.display = 'block';
 
       totalPurchases.textContent = fmt(purchasesSum);
@@ -636,7 +565,6 @@
           purchases.splice(idx, 1);
           savePurchases();
           renderPurchases();
-          updateFinalTotals();
         });
       });
 
@@ -658,11 +586,6 @@
 
     calcBtn.addEventListener('click', () => {
       quickCalculate();
-    });
-
-    kpnMinus.addEventListener('change', () => {
-      quickCalculate();
-      if (purchases.length > 0) updateFinalTotals();
     });
 
     amountInput.addEventListener('keypress', (e) => {
@@ -712,7 +635,7 @@
       const hasNds = pHasNds.checked;
       const nds = hasNds ? amount * NDS_RATE : 0;
 
-      purchases.push({ name, amount: hasNds ? amount : amount, hasNds, nds });
+      purchases.push({ name, amount, hasNds, nds });
       addProductToCatalog(name, amount, hasNds);
       savePurchases();
       renderPurchases();
