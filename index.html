@@ -330,11 +330,6 @@
         <label for="pHasNds" style="margin:0;font-weight:500;">С учётом НДС</label>
       </div>
 
-      <div class="checkbox-row">
-        <input type="checkbox" id="pInclusiveNds">
-        <label for="pInclusiveNds" style="margin:0;font-weight:500;">В том числе НДС</label>
-      </div>
-
       <div class="form-actions">
         <button id="savePurchaseBtn">Сохранить</button>
         <button id="cancelPurchaseBtn" class="secondary">Отмена</button>
@@ -345,6 +340,10 @@
     <div class="purchase-list" id="purchaseList"></div>
 
     <div class="totals-box" id="purchaseTotals" style="display:none;">
+      <div class="checkbox-row" style="margin:0 0 12px;">
+        <input type="checkbox" id="globalInclusiveNds">
+        <label for="globalInclusiveNds" style="margin:0;font-weight:500;">В том числе НДС</label>
+      </div>
       <div class="result-row">
         <span class="result-label">Всего закупов:</span>
         <span class="result-value" id="totalPurchases">0 ₸</span>
@@ -390,12 +389,12 @@
     const pName = document.getElementById('pName');
     const pAmount = document.getElementById('pAmount');
     const pHasNds = document.getElementById('pHasNds');
-    const pInclusiveNds = document.getElementById('pInclusiveNds');
     const savePurchaseBtn = document.getElementById('savePurchaseBtn');
     const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
     const purchaseList = document.getElementById('purchaseList');
     const listTitle = document.getElementById('listTitle');
     const purchaseTotals = document.getElementById('purchaseTotals');
+    const globalInclusiveNds = document.getElementById('globalInclusiveNds');
     const totalPurchases = document.getElementById('totalPurchases');
     const totalNdsCredit = document.getElementById('totalNdsCredit');
     const finalTotals = document.getElementById('finalTotals');
@@ -406,7 +405,7 @@
 
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
-    const STORAGE_KEY = 'nds_purchases_v4';
+    const STORAGE_KEY = 'nds_purchases_v5';
 
     let purchases = [];
     let lastTax = null;
@@ -470,8 +469,27 @@
       const tax = calculateTaxes(clean);
       lastTax = tax;
 
-      const purchasesSum = purchases.reduce((sum, p) => sum + p.amount, 0);
-      const ndsCredit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
+      const globalInclusive = globalInclusiveNds.checked;
+
+      let purchasesSum = 0;
+      let ndsCredit = 0;
+
+      purchases.forEach(p => {
+        if (p.hasNds) {
+          if (globalInclusive) {
+            // сумма товара уже включает НДС
+            purchasesSum += p.amount;
+            ndsCredit += p.nds;
+          } else {
+            // сумма товара без НДС, прибавляем НДС сверху
+            purchasesSum += p.amount + p.nds;
+            ndsCredit += p.nds;
+          }
+        } else {
+          purchasesSum += p.amount;
+        }
+      });
+
       const ndsToPay = Math.max(0, tax.nds - ndsCredit);
 
       // КПН считаем от прибыли с учётом закупов
@@ -513,7 +531,7 @@
                 <span>Сумма: ${fmt(p.amount)}</span>
                 ${p.hasNds ? `<span>НДС: ${fmt(p.nds)}</span>` : ''}
               </div>
-              ${p.hasNds ? `<span class="badge">${p.inclusiveNds ? 'В т.ч. НДС' : 'С учётом НДС'}</span>` : ''}
+              ${p.hasNds ? '<span class="badge">С учётом НДС</span>' : ''}
             </div>
             <button class="secondary small" data-index="${index}">Удалить</button>
           </div>
@@ -544,7 +562,6 @@
       pName.value = '';
       pAmount.value = '';
       pHasNds.checked = false;
-      pInclusiveNds.checked = false;
     }
 
     calcBtn.addEventListener('click', () => {
@@ -554,6 +571,10 @@
     kpnMinus.addEventListener('change', () => {
       quickCalculate();
       if (purchases.length > 0) updateFinalTotals();
+    });
+
+    globalInclusiveNds.addEventListener('change', () => {
+      updateFinalTotals();
     });
 
     amountInput.addEventListener('keypress', (e) => {
@@ -589,22 +610,9 @@
       }
 
       const hasNds = pHasNds.checked;
-      const inclusiveNds = pInclusiveNds.checked;
-      let nds = 0;
-      let totalAmount = amount;
+      const nds = hasNds ? amount * NDS_RATE : 0;
 
-      if (hasNds) {
-        if (inclusiveNds) {
-          // сумма уже включает НДС, выделяем НДС из неё
-          nds = amount * NDS_RATE / (1 + NDS_RATE);
-        } else {
-          // сумма без НДС, прибавляем НДС сверху
-          nds = amount * NDS_RATE;
-          totalAmount = amount + nds;
-        }
-      }
-
-      purchases.push({ name, amount: totalAmount, hasNds, nds, inclusiveNds });
+      purchases.push({ name, amount: hasNds ? amount : amount, hasNds, nds });
       savePurchases();
       renderPurchases();
 
