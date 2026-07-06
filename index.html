@@ -20,7 +20,7 @@
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     padding: 28px 22px;
   }
   h1 {
@@ -30,12 +30,31 @@
     margin-bottom: 20px;
     text-align: center;
   }
+  h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 24px 0 12px;
+  }
   label {
     display: block;
     font-size: 14px;
     color: #555;
     margin-bottom: 6px;
     font-weight: 500;
+  }
+  input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 17px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  input[type="number"]:focus, input[type="text"]:focus {
+    border-color: #007aff;
   }
   .switch-row {
     display: flex;
@@ -83,19 +102,22 @@
   }
   input:checked + .slider { background-color: #007aff; }
   input:checked + .slider:before { transform: translateX(22px); }
-  input[type="number"] {
-    width: 100%;
-    padding: 14px 16px;
-    font-size: 18px;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px;
-    outline: none;
-    transition: border-color .2s;
-    -webkit-appearance: none;
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 4px;
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
   }
-  input[type="number"]:focus {
-    border-color: #007aff;
+  .checkbox-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #007aff;
   }
+
   button {
     width: 100%;
     margin-top: 16px;
@@ -114,6 +136,30 @@
     transform: scale(0.98);
     background: #005bb5;
   }
+  button.secondary {
+    background: #fff;
+    color: #007aff;
+    border: 2px solid #007aff;
+  }
+  button.secondary:active {
+    background: #f0f7ff;
+  }
+  button.danger {
+    background: #fff;
+    color: #ff3b30;
+    border: 2px solid #ff3b30;
+  }
+  button.danger:active {
+    background: #fff0ef;
+  }
+  button.small {
+    width: auto;
+    padding: 8px 12px;
+    font-size: 13px;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
   .results {
     margin-top: 20px;
     display: none;
@@ -144,6 +190,12 @@
     color: #007aff;
     font-size: 18px;
   }
+  .result-value.positive {
+    color: #34c759;
+  }
+  .result-value.negative {
+    color: #ff3b30;
+  }
   .divider {
     height: 1px;
     background: #e0e0e0;
@@ -154,6 +206,80 @@
     color: #888;
     text-align: center;
     margin-top: 4px;
+  }
+
+  .purchase-form {
+    display: none;
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .purchase-form.active {
+    display: block;
+  }
+  .purchase-form label {
+    margin-top: 10px;
+  }
+  .purchase-form label:first-child {
+    margin-top: 0;
+  }
+
+  .purchase-list {
+    margin-top: 16px;
+  }
+  .purchase-item {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .purchase-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .purchase-name {
+    font-weight: 600;
+    color: #1a1a1a;
+    word-break: break-word;
+  }
+  .purchase-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #555;
+  }
+  .purchase-meta span {
+    white-space: nowrap;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: #e6f2ff;
+    color: #007aff;
+    margin-top: 8px;
+  }
+  .empty {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    padding: 20px 0;
+  }
+  .totals-box {
+    background: #f0f7ff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .totals-box .result-row {
+    border-color: #d6e8ff;
   }
 </style>
 </head>
@@ -175,15 +301,9 @@
 
     <div class="results" id="results">
       <div class="result-row">
-        <span class="result-label">Чистая сумма:</span>
-        <span class="result-value" id="res-clean">0 ₸</span>
-      </div>
-      <div class="divider"></div>
-      <div class="result-row">
         <span class="result-label">Сумма с налогом:</span>
         <span class="result-value total" id="res-total">0 ₸</span>
       </div>
-      <div class="muted">умножено на 1.312217</div>
       <div class="divider"></div>
       <div class="result-row">
         <span class="result-label">НДС (16%):</span>
@@ -193,72 +313,295 @@
         <span class="result-label">КПН (10%):</span>
         <span class="result-value" id="res-kpn">0 ₸</span>
       </div>
+      <button id="addPurchaseBtn" class="secondary">Добавить закуп</button>
+    </div>
+
+    <div class="purchase-form" id="purchaseForm">
+      <h2>Новый закуп</h2>
+      <label for="pName">Название / поставщик</label>
+      <input type="text" id="pName" placeholder="Например, ТОО Поставщик">
+
+      <label for="pAmount">Сумма закупа</label>
+      <input type="number" id="pAmount" placeholder="0.00 ₸" step="1" inputmode="decimal">
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="pHasNds">
+        <label for="pHasNds" style="margin:0;font-weight:500;">У поставщика есть НДС</label>
+      </div>
+
+      <div id="ndsBlock" style="display:none;">
+        <label for="pNds">НДС (16%)</label>
+        <input type="number" id="pNds" placeholder="0.00 ₸" step="1" inputmode="decimal">
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="pNdsCredit">
+          <label for="pNdsCredit" style="margin:0;font-weight:500;">Взять НДС в зачёт</label>
+        </div>
+      </div>
+
+      <button id="savePurchaseBtn">Сохранить закуп</button>
+      <button id="cancelPurchaseBtn" class="secondary" style="margin-top:8px;">Отмена</button>
+    </div>
+
+    <h2 id="listTitle" style="display:none;">Закупы</h2>
+    <div class="purchase-list" id="purchaseList"></div>
+
+    <div class="totals-box" id="purchaseTotals" style="display:none;">
+      <div class="result-row">
+        <span class="result-label">Всего закупов:</span>
+        <span class="result-value" id="totalPurchases">0 ₸</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">НДС к зачёту:</span>
+        <span class="result-value positive" id="totalNdsCredit">0 ₸</span>
+      </div>
+    </div>
+
+    <div class="totals-box" id="finalTotals" style="display:none;">
+      <div class="result-row">
+        <span class="result-label">НДС к уплате:</span>
+        <span class="result-value negative" id="finalNds">0 ₸</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">КПН к уплате:</span>
+        <span class="result-value negative" id="finalKpn">0 ₸</span>
+      </div>
     </div>
   </div>
 
   <script>
     const amountInput = document.getElementById('amount');
     const calcBtn = document.getElementById('calcBtn');
+    const addPurchaseBtn = document.getElementById('addPurchaseBtn');
     const kpnMinus = document.getElementById('kpnMinus');
     const results = document.getElementById('results');
-    const resClean = document.getElementById('res-clean');
     const resTotal = document.getElementById('res-total');
     const resNds = document.getElementById('res-nds');
     const resKpn = document.getElementById('res-kpn');
 
+    const purchaseForm = document.getElementById('purchaseForm');
+    const pName = document.getElementById('pName');
+    const pAmount = document.getElementById('pAmount');
+    const pHasNds = document.getElementById('pHasNds');
+    const pNds = document.getElementById('pNds');
+    const pNdsCredit = document.getElementById('pNdsCredit');
+    const ndsBlock = document.getElementById('ndsBlock');
+    const savePurchaseBtn = document.getElementById('savePurchaseBtn');
+    const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+    const purchaseList = document.getElementById('purchaseList');
+    const listTitle = document.getElementById('listTitle');
+    const purchaseTotals = document.getElementById('purchaseTotals');
+    const totalPurchases = document.getElementById('totalPurchases');
+    const totalNdsCredit = document.getElementById('totalNdsCredit');
+    const finalTotals = document.getElementById('finalTotals');
+    const finalNds = document.getElementById('finalNds');
+    const finalKpn = document.getElementById('finalKpn');
+
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
+    const STORAGE_KEY = 'nds_purchases_v1';
+
+    let purchases = [];
 
     function fmt(num) {
       return num.toLocaleString('ru-KZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₸';
+    }
+
+    function loadPurchases() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) purchases = JSON.parse(data);
+      } catch (e) {
+        purchases = [];
+      }
+    }
+
+    function savePurchases() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(purchases));
     }
 
     function calculate() {
       const clean = parseFloat(amountInput.value);
       if (isNaN(clean) || clean < 0) {
         amountInput.focus();
-        return;
+        return null;
       }
 
-      // total — сумма с налогом, при которой clean остаётся после всех налогов
       let total, nds, kpn;
 
       if (kpnMinus.checked) {
-        // КПН считается от суммы за минусом налогов:
-        // total = clean + nds + kpn
-        // nds = total * 16%
-        // kpn = (total - nds) * 10%
-        // Решаем уравнение:
-        // total = clean + 0.16*total + 0.10*(total - 0.16*total)
-        // total = clean + 0.16*total + 0.084*total
-        // total = clean + 0.244*total
-        // total * (1 - 0.244) = clean
-        // total = clean / 0.756
         const COEF = 1 / (1 - NDS_RATE - KPN_RATE * (1 - NDS_RATE));
         total = clean * COEF;
         nds = total * NDS_RATE;
         kpn = (total - nds) * KPN_RATE;
       } else {
-        // КПН считается от всей суммы с налогом (как раньше)
         const COEF = 1 / (1 - NDS_RATE - KPN_RATE);
         total = clean * COEF;
         nds = total * NDS_RATE;
         kpn = total * KPN_RATE;
       }
 
-      resClean.textContent = fmt(clean);
       resTotal.textContent = fmt(total);
       resNds.textContent = fmt(nds);
       resKpn.textContent = fmt(kpn);
       results.classList.add('active');
+
+      return { total, nds, kpn };
     }
 
-    calcBtn.addEventListener('click', calculate);
-    kpnMinus.addEventListener('change', () => { if (results.classList.contains('active')) calculate(); });
+    function updateFinalTotals() {
+      const tax = calculate();
+      if (!tax) {
+        finalTotals.style.display = 'none';
+        return;
+      }
+
+      const credit = purchases.reduce((sum, p) => sum + (p.ndsCredit ? p.nds : 0), 0);
+      const ndsToPay = Math.max(0, tax.nds - credit);
+
+      finalNds.textContent = fmt(ndsToPay);
+      finalKpn.textContent = fmt(tax.kpn);
+      finalTotals.style.display = 'block';
+    }
+
+    function renderPurchases() {
+      purchaseList.innerHTML = '';
+
+      if (purchases.length === 0) {
+        listTitle.style.display = 'none';
+        purchaseTotals.style.display = 'none';
+        updateFinalTotals();
+        return;
+      }
+
+      listTitle.style.display = 'block';
+
+      let total = 0;
+      let credit = 0;
+
+      purchases.forEach((p, index) => {
+        total += p.amount;
+        if (p.ndsCredit) credit += p.nds;
+
+        const el = document.createElement('div');
+        el.className = 'purchase-item';
+        el.innerHTML = `
+          <div class="purchase-header">
+            <div>
+              <div class="purchase-name">${escapeHtml(p.name || 'Без названия')}</div>
+              <div class="purchase-meta">
+                <span>Сумма: ${fmt(p.amount)}</span>
+                ${p.hasNds ? `<span>НДС: ${fmt(p.nds)}</span>` : ''}
+              </div>
+              ${p.ndsCredit ? '<span class="badge">НДС в зачёт</span>' : ''}
+            </div>
+            <button class="secondary small" data-index="${index}">Удалить</button>
+          </div>
+        `;
+        purchaseList.appendChild(el);
+      });
+
+      totalPurchases.textContent = fmt(total);
+      totalNdsCredit.textContent = fmt(credit);
+      purchaseTotals.style.display = 'block';
+
+      document.querySelectorAll('.purchase-item button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.dataset.index);
+          purchases.splice(idx, 1);
+          savePurchases();
+          renderPurchases();
+        });
+      });
+
+      updateFinalTotals();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function resetForm() {
+      pName.value = '';
+      pAmount.value = '';
+      pHasNds.checked = false;
+      pNds.value = '';
+      pNdsCredit.checked = false;
+      ndsBlock.style.display = 'none';
+    }
+
+    calcBtn.addEventListener('click', () => {
+      calculate();
+      updateFinalTotals();
+    });
+
+    kpnMinus.addEventListener('change', () => {
+      if (results.classList.contains('active')) {
+        calculate();
+        updateFinalTotals();
+      }
+    });
 
     amountInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') calcBtn.click();
     });
+
+    addPurchaseBtn.addEventListener('click', () => {
+      purchaseForm.classList.add('active');
+      addPurchaseBtn.style.display = 'none';
+      pName.focus();
+    });
+
+    cancelPurchaseBtn.addEventListener('click', () => {
+      purchaseForm.classList.remove('active');
+      addPurchaseBtn.style.display = 'block';
+      resetForm();
+    });
+
+    pHasNds.addEventListener('change', () => {
+      ndsBlock.style.display = pHasNds.checked ? 'block' : 'none';
+      if (pHasNds.checked) {
+        const amount = parseFloat(pAmount.value) || 0;
+        pNds.value = (amount * NDS_RATE).toFixed(2);
+      } else {
+        pNds.value = '';
+        pNdsCredit.checked = false;
+      }
+    });
+
+    pAmount.addEventListener('input', () => {
+      if (pHasNds.checked) {
+        const amount = parseFloat(pAmount.value) || 0;
+        pNds.value = (amount * NDS_RATE).toFixed(2);
+      }
+    });
+
+    savePurchaseBtn.addEventListener('click', () => {
+      const name = pName.value.trim();
+      const amount = parseFloat(pAmount.value);
+
+      if (!name || isNaN(amount) || amount <= 0) {
+        pName.focus();
+        return;
+      }
+
+      const hasNds = pHasNds.checked;
+      const nds = hasNds ? (parseFloat(pNds.value) || amount * NDS_RATE) : 0;
+      const ndsCredit = hasNds && pNdsCredit.checked;
+
+      purchases.push({ name, amount, hasNds, nds, ndsCredit });
+      savePurchases();
+      renderPurchases();
+
+      purchaseForm.classList.remove('active');
+      addPurchaseBtn.style.display = 'block';
+      resetForm();
+    });
+
+    loadPurchases();
+    renderPurchases();
   </script>
 </body>
 </html>
