@@ -523,7 +523,7 @@
 
       finalNds.textContent = fmt(ndsToPay);
       finalKpn.textContent = fmt(kpnToPay);
-      finalTotal.textContent = fmt(tax.total);
+      finalTotal.textContent = fmt(Math.max(0, amount - tax.nds - kpnToPay));
       finalProfit.textContent = fmt(Math.max(0, amount - tax.nds - kpnToPay - purchasesSum));
       finalTotals.style.display = 'block';
 
