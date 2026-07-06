@@ -561,8 +561,12 @@
       const purchasesSum = currentItems.reduce((sum, p) => sum + p.amount, 0);
       const ndsCredit = currentItems.reduce((sum, p) => sum + (p.hasNds ? p.amount * NDS_RATE / (1 + NDS_RATE) : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - ndsCredit);
-      const purchasesCleanSum = currentItems.reduce((sum, p) => sum + (p.hasNds ? p.amount / (1 + NDS_RATE) : p.amount), 0);
-      const kpnBase = amount - tax.nds - purchasesCleanSum;
+      // Только товары с ОУР принимаются в зачёт как расходы для КПН
+      const deductibleCleanSum = currentItems.reduce((sum, p) => {
+        if (!p.oyr) return sum;
+        return sum + (p.hasNds ? p.amount / (1 + NDS_RATE) : p.amount);
+      }, 0);
+      const kpnBase = amount - tax.nds - deductibleCleanSum;
       const kpnToPay = Math.max(0, kpnBase * KPN_RATE);
 
       finalNds.textContent = fmt(tax.nds);
