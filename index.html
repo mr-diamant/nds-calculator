@@ -437,7 +437,6 @@
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
     const STORAGE_KEY = 'nds_purchases_v5';
-    const PRODUCTS_KEY = 'nds_products_catalog';
 
     let purchases = [];
 
@@ -458,43 +457,29 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(purchases));
     }
 
-    function loadProducts() {
-      try {
-        return JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
-      } catch (e) {
-        return [];
-      }
+    function getUniqueProducts() {
+      const map = new Map();
+      purchases.forEach(p => {
+        map.set(p.name.toLowerCase(), { name: p.name, amount: p.amount, hasNds: p.hasNds });
+      });
+      return Array.from(map.values());
     }
 
-    function saveProducts(catalog) {
-      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalog));
-    }
-
-    function addProductToCatalog(name, amount, hasNds) {
-      const catalog = loadProducts();
-      const existingIndex = catalog.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
-      if (existingIndex >= 0) {
-        catalog[existingIndex] = { name, amount, hasNds };
-      } else {
-        catalog.push({ name, amount, hasNds });
-      }
-      saveProducts(catalog);
-    }
-
-    function removeProductFromCatalog(name) {
-      let catalog = loadProducts().filter(p => p.name.toLowerCase() !== name.toLowerCase());
-      saveProducts(catalog);
+    function removeProductByName(name) {
+      purchases = purchases.filter(p => p.name.toLowerCase() !== name.toLowerCase());
+      savePurchases();
       showAutocomplete(pName.value.trim());
+      renderPurchases();
     }
 
     function showAutocomplete(query) {
-      const catalog = loadProducts();
+      const products = getUniqueProducts();
       let matches = [];
 
       if (query.length === 0) {
-        matches = catalog.slice(-5).reverse();
+        matches = products.slice(-5).reverse();
       } else {
-        matches = catalog.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+        matches = products.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
       }
 
       pNameAutocomplete.innerHTML = '';
@@ -525,7 +510,7 @@
 
         item.querySelector('button.danger').addEventListener('click', (e) => {
           e.stopPropagation();
-          removeProductFromCatalog(p.name);
+          removeProductByName(p.name);
         });
 
         pNameAutocomplete.appendChild(item);
@@ -717,7 +702,6 @@
       const nds = hasNds ? amount * NDS_RATE / (1 + NDS_RATE) : 0;
 
       purchases.push({ name, amount, hasNds, oyr });
-      addProductToCatalog(name, amount, hasNds);
       savePurchases();
       renderPurchases();
 
