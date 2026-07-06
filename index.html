@@ -633,7 +633,7 @@
       }
 
       const hasNds = pHasNds.checked;
-      const nds = hasNds ? amount * NDS_RATE : 0;
+      const nds = hasNds ? amount * NDS_RATE / (1 + NDS_RATE) : 0;
 
       purchases.push({ name, amount, hasNds, nds });
       addProductToCatalog(name, amount, hasNds);
