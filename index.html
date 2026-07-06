@@ -364,24 +364,21 @@
         <span class="result-label">КПН (10%):</span>
         <span class="result-value" id="res-kpn">0 ₸</span>
       </div>
-      <button id="addPurchaseBtn" class="secondary">Добавить закуп</button>
+      <button id="addPurchaseBtn" class="secondary">Добавить товар</button>
     </div>
 
     <div class="purchase-form" id="purchaseForm">
-      <h2>Новый закуп</h2>
+      <h2>Новый товар</h2>
 
-      <div id="productsContainer"></div>
+      <label for="pName">Название товара</label>
+      <input type="text" id="pName" placeholder="Например, Бумага A4">
 
-      <button id="addProductBtn" class="link">+ Добавить товар</button>
+      <label for="pAmount" style="margin-top:12px;">Сумма</label>
+      <input type="number" id="pAmount" placeholder="0.00 ₸" step="1" inputmode="decimal">
 
       <div class="checkbox-row">
         <input type="checkbox" id="pHasNds">
-        <label for="pHasNds" style="margin:0;font-weight:500;">У поставщика есть НДС</label>
-      </div>
-
-      <div class="checkbox-row" id="ndsCreditRow" style="display:none;">
-        <input type="checkbox" id="pNdsCredit">
-        <label for="pNdsCredit" style="margin:0;font-weight:500;">Взять НДС в зачёт</label>
+        <label for="pHasNds" style="margin:0;font-weight:500;">С учётом НДС</label>
       </div>
 
       <div class="form-actions">
@@ -427,11 +424,9 @@
     const resKpn = document.getElementById('res-kpn');
 
     const purchaseForm = document.getElementById('purchaseForm');
-    const productsContainer = document.getElementById('productsContainer');
-    const addProductBtn = document.getElementById('addProductBtn');
+    const pName = document.getElementById('pName');
+    const pAmount = document.getElementById('pAmount');
     const pHasNds = document.getElementById('pHasNds');
-    const pNdsCredit = document.getElementById('pNdsCredit');
-    const ndsCreditRow = document.getElementById('ndsCreditRow');
     const savePurchaseBtn = document.getElementById('savePurchaseBtn');
     const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
     const purchaseList = document.getElementById('purchaseList');
@@ -445,10 +440,9 @@
 
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
-    const STORAGE_KEY = 'nds_purchases_v2';
+    const STORAGE_KEY = 'nds_purchases_v3';
 
     let purchases = [];
-    let tempProducts = [];
 
     function fmt(num) {
       return num.toLocaleString('ru-KZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₸';
@@ -503,7 +497,7 @@
         return;
       }
 
-      const credit = purchases.reduce((sum, p) => sum + (p.ndsCredit ? p.nds : 0), 0);
+      const credit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - credit);
 
       finalNds.textContent = fmt(ndsToPay);
@@ -528,33 +522,20 @@
 
       purchases.forEach((p, index) => {
         total += p.amount;
-        if (p.ndsCredit) credit += p.nds;
+        if (p.hasNds) credit += p.nds;
 
         const el = document.createElement('div');
         el.className = 'purchase-item';
 
-        let productsHtml = '';
-        if (p.products && p.products.length > 0) {
-          productsHtml = `<div class="purchase-products">` +
-            p.products.map(prod => `
-              <div class="product-line">
-                <span>${escapeHtml(prod.name || 'Товар')}</span>
-                <span>${fmt(prod.amount)}</span>
-              </div>
-            `).join('') +
-          `</div>`;
-        }
-
         el.innerHTML = `
           <div class="purchase-header">
             <div>
-              <div class="purchase-name">Закуп #${index + 1}</div>
-              ${productsHtml}
+              <div class="purchase-name">${escapeHtml(p.name || 'Товар')}</div>
               <div class="purchase-meta">
-                <span>Итого: ${fmt(p.amount)}</span>
+                <span>Сумма: ${fmt(p.amount)}</span>
                 ${p.hasNds ? `<span>НДС: ${fmt(p.nds)}</span>` : ''}
               </div>
-              ${p.ndsCredit ? '<span class="badge">НДС в зачёт</span>' : ''}
+              ${p.hasNds ? '<span class="badge">С учётом НДС</span>' : ''}
             </div>
             <button class="secondary small" data-index="${index}">Удалить</button>
           </div>
@@ -584,69 +565,10 @@
       return div.innerHTML;
     }
 
-    function createProductRow(index) {
-      const div = document.createElement('div');
-      div.className = 'product-row';
-      div.dataset.index = index;
-      div.innerHTML = `
-        <label>Название товара</label>
-        <input type="text" class="prod-name" placeholder="Например, Бумага A4">
-        <label style="margin-top:10px;">Сумма</label>
-        <input type="number" class="prod-amount" placeholder="0.00 ₸" step="1" inputmode="decimal">
-        ${index > 0 ? `<button class="secondary small remove-product">Удалить товар</button>` : ''}
-      `;
-      return div;
-    }
-
-    function renderProducts() {
-      productsContainer.innerHTML = '';
-      tempProducts.forEach((_, idx) => {
-        const row = createProductRow(idx);
-        productsContainer.appendChild(row);
-      });
-
-      // restore values
-      tempProducts.forEach((prod, idx) => {
-        const row = productsContainer.children[idx];
-        if (row) {
-          row.querySelector('.prod-name').value = prod.name || '';
-          row.querySelector('.prod-amount').value = prod.amount ? prod.amount.toString() : '';
-        }
-      });
-
-      attachProductListeners();
-    }
-
-    function attachProductListeners() {
-      productsContainer.querySelectorAll('.prod-name, .prod-amount').forEach(input => {
-        input.addEventListener('input', updateTempProducts);
-      });
-      productsContainer.querySelectorAll('.remove-product').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const row = e.target.closest('.product-row');
-          const idx = parseInt(row.dataset.index);
-          tempProducts.splice(idx, 1);
-          renderProducts();
-        });
-      });
-    }
-
-    function updateTempProducts() {
-      tempProducts = [];
-      productsContainer.querySelectorAll('.product-row').forEach(row => {
-        tempProducts.push({
-          name: row.querySelector('.prod-name').value.trim(),
-          amount: parseFloat(row.querySelector('.prod-amount').value) || 0
-        });
-      });
-    }
-
     function resetForm() {
-      tempProducts = [{ name: '', amount: 0 }];
-      renderProducts();
+      pName.value = '';
+      pAmount.value = '';
       pHasNds.checked = false;
-      pNdsCredit.checked = false;
-      ndsCreditRow.style.display = 'none';
     }
 
     calcBtn.addEventListener('click', () => {
@@ -669,7 +591,7 @@
       purchaseForm.classList.add('active');
       addPurchaseBtn.style.display = 'none';
       resetForm();
-      productsContainer.querySelector('.prod-name').focus();
+      pName.focus();
     });
 
     cancelPurchaseBtn.addEventListener('click', () => {
@@ -678,40 +600,20 @@
       resetForm();
     });
 
-    addProductBtn.addEventListener('click', () => {
-      updateTempProducts();
-      tempProducts.push({ name: '', amount: 0 });
-      renderProducts();
-    });
-
-    pHasNds.addEventListener('change', () => {
-      ndsCreditRow.style.display = pHasNds.checked ? 'flex' : 'none';
-      if (!pHasNds.checked) {
-        pNdsCredit.checked = false;
-      }
-    });
-
     savePurchaseBtn.addEventListener('click', () => {
-      updateTempProducts();
+      const name = pName.value.trim();
+      const amount = parseFloat(pAmount.value);
 
-      const validProducts = tempProducts.filter(p => p.name && p.amount > 0);
-      if (validProducts.length === 0) {
-        productsContainer.querySelector('.prod-name').focus();
+      if (!name || isNaN(amount) || amount <= 0) {
+        if (!name) pName.focus();
+        else pAmount.focus();
         return;
       }
 
-      const amount = validProducts.reduce((sum, p) => sum + p.amount, 0);
       const hasNds = pHasNds.checked;
       const nds = hasNds ? amount * NDS_RATE : 0;
-      const ndsCredit = hasNds && pNdsCredit.checked;
 
-      purchases.push({
-        products: validProducts,
-        amount,
-        hasNds,
-        nds,
-        ndsCredit
-      });
+      purchases.push({ name, amount, hasNds, nds });
       savePurchases();
       renderPurchases();
 
