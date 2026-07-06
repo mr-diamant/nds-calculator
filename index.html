@@ -521,10 +521,10 @@
       const kpnBase = amount - tax.nds - purchasesSum;
       const kpnToPay = Math.max(0, kpnBase * KPN_RATE);
 
-      finalNds.textContent = fmt(ndsToPay);
+      finalNds.textContent = fmt(tax.nds);
       finalKpn.textContent = fmt(kpnToPay);
-      finalTotal.textContent = fmt(Math.max(0, amount - tax.nds - kpnToPay));
-      finalProfit.textContent = fmt(Math.max(0, amount - tax.nds - kpnToPay - purchasesSum));
+      finalTotal.textContent = fmt(Math.max(0, amount - ndsToPay - kpnToPay));
+      finalProfit.textContent = fmt(Math.max(0, amount - ndsToPay - kpnToPay - purchasesSum));
       finalTotals.style.display = 'block';
 
       totalPurchases.textContent = fmt(purchasesSum);
