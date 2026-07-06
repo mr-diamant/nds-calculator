@@ -416,7 +416,6 @@
     const pNameAutocomplete = document.getElementById('pNameAutocomplete');
     const pAmount = document.getElementById('pAmount');
     const pHasNds = document.getElementById('pHasNds');
-    const ndsLabel = document.getElementById('ndsLabel');
     const pOyr = document.getElementById('pOyr');
     const savePurchaseBtn = document.getElementById('savePurchaseBtn');
     const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
@@ -670,7 +669,7 @@
     });
 
     pHasNds.addEventListener('change', () => {
-      ndsLabel.textContent = pHasNds.checked ? 'С НДС' : 'НДС';
+      calculate();
     });
 
     document.addEventListener('click', (e) => {
@@ -696,7 +695,6 @@
       }
 
       const hasNds = pHasNds.checked;
-      ndsLabel.textContent = hasNds ? 'С НДС' : 'НДС';
       const oyr = pOyr.checked;
       const nds = hasNds ? amount * NDS_RATE / (1 + NDS_RATE) : 0;
 
