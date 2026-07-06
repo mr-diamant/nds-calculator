@@ -438,7 +438,8 @@
     const KPN_RATE = 0.10;
     const STORAGE_KEY = 'nds_purchases_v5';
 
-    let purchases = [];
+    let purchases = [];   // localStorage — каталог для автокомплита
+    let currentItems = []; // временный список для текущего расчёта
 
     function fmt(num) {
       return num.toLocaleString('ru-KZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₸';
@@ -469,7 +470,6 @@
       purchases = purchases.filter(p => p.name.toLowerCase() !== name.toLowerCase());
       savePurchases();
       showAutocomplete(pName.value.trim());
-      renderPurchases();
     }
 
     function showAutocomplete(query) {
@@ -554,10 +554,10 @@
 
       const tax = calculateTaxes(amount);
 
-      const purchasesSum = purchases.reduce((sum, p) => sum + p.amount, 0);
-      const ndsCredit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.amount * NDS_RATE / (1 + NDS_RATE) : 0), 0);
+      const purchasesSum = currentItems.reduce((sum, p) => sum + p.amount, 0);
+      const ndsCredit = currentItems.reduce((sum, p) => sum + (p.hasNds ? p.amount * NDS_RATE / (1 + NDS_RATE) : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - ndsCredit);
-      const purchasesCleanSum = purchases.reduce((sum, p) => sum + (p.hasNds ? p.amount / (1 + NDS_RATE) : p.amount), 0);
+      const purchasesCleanSum = currentItems.reduce((sum, p) => sum + (p.hasNds ? p.amount / (1 + NDS_RATE) : p.amount), 0);
       const kpnBase = amount - tax.nds - purchasesCleanSum;
       const kpnToPay = Math.max(0, kpnBase * KPN_RATE);
 
@@ -569,13 +569,13 @@
 
       totalPurchases.textContent = fmt(purchasesSum);
       totalNdsCredit.textContent = fmt(ndsCredit);
-      purchaseTotals.style.display = purchases.length > 0 ? 'block' : 'none';
+      purchaseTotals.style.display = currentItems.length > 0 ? 'block' : 'none';
     }
 
     function renderPurchases() {
       purchaseList.innerHTML = '';
 
-      if (purchases.length === 0) {
+      if (currentItems.length === 0) {
         listTitle.style.display = 'none';
         purchaseTotals.style.display = 'none';
         updateFinalTotals();
@@ -584,7 +584,7 @@
 
       listTitle.style.display = 'block';
 
-      purchases.forEach((p, index) => {
+      currentItems.forEach((p, index) => {
         const el = document.createElement('div');
         el.className = 'purchase-item';
         el.innerHTML = `
@@ -605,8 +605,7 @@
       document.querySelectorAll('.purchase-item button').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const idx = parseInt(e.target.dataset.index);
-          purchases.splice(idx, 1);
-          savePurchases();
+          currentItems.splice(idx, 1);
           renderPurchases();
         });
       });
@@ -700,9 +699,10 @@
 
       const hasNds = pHasNds.checked;
       const oyr = pOyr.checked;
-      const nds = hasNds ? amount * NDS_RATE / (1 + NDS_RATE) : 0;
+      const item = { name, amount, hasNds, oyr };
 
-      purchases.push({ name, amount, hasNds, oyr });
+      purchases.push(item);
+      currentItems.push(item);
       savePurchases();
       renderPurchases();
 
