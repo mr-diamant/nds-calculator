@@ -569,9 +569,9 @@
       const tax = calculateTaxes(amount);
 
       const purchasesSum = purchases.reduce((sum, p) => sum + p.amount, 0);
-      const ndsCredit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.nds : 0), 0);
+      const ndsCredit = purchases.reduce((sum, p) => sum + (p.hasNds ? p.amount * NDS_RATE / (1 + NDS_RATE) : 0), 0);
       const ndsToPay = Math.max(0, tax.nds - ndsCredit);
-      const purchasesCleanSum = purchases.reduce((sum, p) => sum + (p.hasNds ? p.amount - p.nds : p.amount), 0);
+      const purchasesCleanSum = purchases.reduce((sum, p) => sum + (p.hasNds ? p.amount / (1 + NDS_RATE) : p.amount), 0);
       const kpnBase = amount - tax.nds - purchasesCleanSum;
       const kpnToPay = Math.max(0, kpnBase * KPN_RATE);
 
@@ -608,7 +608,7 @@
               <div class="purchase-meta">
                 <span>Сумма: ${fmt(p.amount)}</span>
               </div>
-              ${p.hasNds ? `<div class="purchase-meta"><span>НДС: ${fmt(p.nds)}</span></div>` : ''}
+              ${p.hasNds ? `<div class="purchase-meta"><span>НДС: ${fmt(p.amount * NDS_RATE / (1 + NDS_RATE))}</span></div>` : ''}
             </div>
             <button class="danger" data-index="${index}" title="Удалить">×</button>
           </div>
@@ -716,7 +716,7 @@
       const oyr = pOyr.checked;
       const nds = hasNds ? amount * NDS_RATE / (1 + NDS_RATE) : 0;
 
-      purchases.push({ name, amount, hasNds, oyr, nds });
+      purchases.push({ name, amount, hasNds, oyr });
       addProductToCatalog(name, amount, hasNds);
       savePurchases();
       renderPurchases();
