@@ -217,9 +217,10 @@
     display: block;
   }
   .purchase-form label {
-    margin-left: 6px;
   }
   .purchase-form label:first-child {
+  }
+  .field-label {
     margin-left: 6px;
   }
 
@@ -337,11 +338,11 @@
     </div>
 
     <div class="purchase-form" id="purchaseForm">
-      <label for="pName">Название товара</label>
+      <label for="pName" class="field-label">Название товара</label>
       <input type="text" id="pName" placeholder="Например, Бумага A4" autocomplete="off">
       <div class="autocomplete-list" id="pNameAutocomplete"></div>
 
-      <label for="pAmount" style="margin-top:12px;">Сумма</label>
+      <label for="pAmount" class="field-label">Сумма</label>
       <input type="number" id="pAmount" placeholder="0.00 ₸" step="1" inputmode="decimal">
 
       <div class="form-row switch-inline">
