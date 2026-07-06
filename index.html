@@ -460,7 +460,7 @@
     function getUniqueProducts() {
       const map = new Map();
       purchases.forEach(p => {
-        map.set(p.name.toLowerCase(), { name: p.name, amount: p.amount, hasNds: p.hasNds });
+        map.set(p.name.toLowerCase(), { name: p.name, amount: p.amount, hasNds: p.hasNds, oyr: p.oyr });
       });
       return Array.from(map.values());
     }
@@ -661,7 +661,7 @@
     });
 
     pHasNds.addEventListener('change', () => {
-      calculate();
+      updateFinalTotals();
     });
 
     function updateNdsSwitchState() {
@@ -671,7 +671,7 @@
         pHasNds.checked = false;
         pHasNds.disabled = true;
       }
-      calculate();
+      updateFinalTotals();
     }
 
     pOyr.addEventListener('change', updateNdsSwitchState);
