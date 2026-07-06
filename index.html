@@ -133,7 +133,9 @@
   button.secondary {
     background: #fff;
     color: #007aff;
-    border: 2px solid #007aff;
+    border: 1px solid #007aff;
+    padding: 10px;
+    font-weight: 300;
   }
   button.secondary:active {
     background: #f0f7ff;
@@ -341,7 +343,6 @@
         <span class="result-label">Итого:</span>
         <span class="result-value total" id="q-total">0 ₸</span>
       </div>
-      <button id="addPurchaseBtn" class="secondary">Добавить товар</button>
     </div>
 
     <div class="purchase-form" id="purchaseForm">
@@ -375,8 +376,11 @@
       </div>
     </div>
 
-    <h2 id="listTitle" style="display:none;">Товары</h2>
-    <div class="purchase-list" id="purchaseList"></div>
+    <div class="purchase-list" id="purchaseList">
+      <h2 id="listTitle" style="display:none;">Товары</h2>
+    </div>
+
+    <button id="addPurchaseBtn" class="secondary" style="display:none;">Добавить товар</button>
 
     <div class="totals-box" id="purchaseTotals" style="display:none;">
       <div class="result-row">
@@ -547,6 +551,7 @@
       qKpn.textContent = fmt(tax.kpn);
       qTotal.textContent = fmt(tax.total);
       quickResults.classList.add('active');
+      addPurchaseBtn.style.display = 'block';
 
       return tax;
     }
@@ -580,16 +585,19 @@
     }
 
     function renderPurchases() {
+      // Сохраняем h2#listTitle, очищаем остальные дочерние элементы
+      const title = document.getElementById('listTitle');
       purchaseList.innerHTML = '';
+      purchaseList.appendChild(title);
 
       if (currentItems.length === 0) {
-        listTitle.style.display = 'none';
+        title.style.display = 'none';
         purchaseTotals.style.display = 'none';
         updateFinalTotals();
         return;
       }
 
-      listTitle.style.display = 'block';
+      title.style.display = 'block';
 
       currentItems.forEach((p, index) => {
         const el = document.createElement('div');
@@ -690,7 +698,9 @@
 
     cancelPurchaseBtn.addEventListener('click', () => {
       purchaseForm.classList.remove('active');
-      quickResults.classList.add('active');
+      if (currentItems.length === 0) {
+        quickResults.classList.add('active');
+      }
       resetForm();
     });
 
@@ -713,8 +723,11 @@
       savePurchases();
       renderPurchases();
 
+      purchaseForm.classList.remove('active');
+      if (currentItems.length === 0) {
+        quickResults.classList.add('active');
+      }
       resetForm();
-      pName.focus();
     });
 
     loadPurchases();
