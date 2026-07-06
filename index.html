@@ -37,6 +37,52 @@
     margin-bottom: 6px;
     font-weight: 500;
   }
+  .switch-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0 4px;
+    padding: 12px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+  }
+  .switch-label {
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+    line-height: 1.3;
+    padding-right: 12px;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    border-radius: 28px;
+    transition: .2s;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  input:checked + .slider { background-color: #007aff; }
+  input:checked + .slider:before { transform: translateX(22px); }
   input[type="number"] {
     width: 100%;
     padding: 14px 16px;
@@ -116,6 +162,15 @@
     <h1>Калькулятор налогов</h1>
     <label for="amount">Чистая сумма (что хочу получить)</label>
     <input type="number" id="amount" placeholder="0.00 ₸" step="1" inputmode="decimal">
+
+    <div class="switch-row">
+      <span class="switch-label">КПН считать за минусом налогов</span>
+      <label class="switch" for="kpnMinus">
+        <input type="checkbox" id="kpnMinus">
+        <span class="slider"></span>
+      </label>
+    </div>
+
     <button id="calcBtn">Рассчитать</button>
 
     <div class="results" id="results">
@@ -144,13 +199,13 @@
   <script>
     const amountInput = document.getElementById('amount');
     const calcBtn = document.getElementById('calcBtn');
+    const kpnMinus = document.getElementById('kpnMinus');
     const results = document.getElementById('results');
     const resClean = document.getElementById('res-clean');
     const resTotal = document.getElementById('res-total');
     const resNds = document.getElementById('res-nds');
     const resKpn = document.getElementById('res-kpn');
 
-    const COEF = 1.312217;
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
 
@@ -158,23 +213,48 @@
       return num.toLocaleString('ru-KZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₸';
     }
 
-    calcBtn.addEventListener('click', () => {
+    function calculate() {
       const clean = parseFloat(amountInput.value);
       if (isNaN(clean) || clean < 0) {
         amountInput.focus();
         return;
       }
 
-      const total = clean * COEF;
-      const nds = total * NDS_RATE;
-      const kpn = total * KPN_RATE;
+      // total — сумма с налогом, при которой clean остаётся после всех налогов
+      let total, nds, kpn;
+
+      if (kpnMinus.checked) {
+        // КПН считается от суммы за минусом налогов:
+        // total = clean + nds + kpn
+        // nds = total * 16%
+        // kpn = (total - nds) * 10%
+        // Решаем уравнение:
+        // total = clean + 0.16*total + 0.10*(total - 0.16*total)
+        // total = clean + 0.16*total + 0.084*total
+        // total = clean + 0.244*total
+        // total * (1 - 0.244) = clean
+        // total = clean / 0.756
+        const COEF = 1 / (1 - NDS_RATE - KPN_RATE * (1 - NDS_RATE));
+        total = clean * COEF;
+        nds = total * NDS_RATE;
+        kpn = (total - nds) * KPN_RATE;
+      } else {
+        // КПН считается от всей суммы с налогом (как раньше)
+        const COEF = 1 / (1 - NDS_RATE - KPN_RATE);
+        total = clean * COEF;
+        nds = total * NDS_RATE;
+        kpn = total * KPN_RATE;
+      }
 
       resClean.textContent = fmt(clean);
       resTotal.textContent = fmt(total);
       resNds.textContent = fmt(nds);
       resKpn.textContent = fmt(kpn);
       results.classList.add('active');
-    });
+    }
+
+    calcBtn.addEventListener('click', calculate);
+    kpnMinus.addEventListener('change', () => { if (results.classList.contains('active')) calculate(); });
 
     amountInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') calcBtn.click();
