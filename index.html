@@ -47,7 +47,7 @@
     width: 100%;
     padding: 14px 16px;
     font-size: 17px;
-    border: 2px solid #e0e0e0;
+    border: 1px solid #a4a4a4;
     border-radius: 12px;
     outline: none;
     transition: border-color .2s;
@@ -345,6 +345,12 @@
       </div>
     </div>
 
+    <div class="purchase-list" id="purchaseList">
+      <h2 id="listTitle" style="display:none;">Товары</h2>
+    </div>
+
+    <button id="addPurchaseBtn" class="secondary" style="display:none;">Добавить товар</button>
+
     <div class="purchase-form" id="purchaseForm">
       <label for="pName" class="field-label">Название товара</label>
       <input type="text" id="pName" placeholder="Например, Бумага A4" autocomplete="off">
@@ -375,12 +381,6 @@
         <button id="cancelPurchaseBtn" class="secondary">Отмена</button>
       </div>
     </div>
-
-    <div class="purchase-list" id="purchaseList">
-      <h2 id="listTitle" style="display:none;">Товары</h2>
-    </div>
-
-    <button id="addPurchaseBtn" class="secondary" style="display:none;">Добавить товар</button>
 
     <div class="totals-box" id="purchaseTotals" style="display:none;">
       <div class="result-row">
@@ -577,7 +577,7 @@
       finalKpn.textContent = fmt(kpnToPay);
       finalTotal.textContent = fmt(Math.max(0, amount - ndsToPay - kpnToPay));
       finalProfit.textContent = fmt(Math.max(0, amount - ndsToPay - kpnToPay - purchasesSum));
-      finalTotals.style.display = 'block';
+      finalTotals.style.display = currentItems.length > 0 ? 'block' : 'none';
 
       totalPurchases.textContent = fmt(purchasesSum);
       totalNdsCredit.textContent = fmt(ndsCredit);
@@ -661,6 +661,7 @@
       if (!tax) return;
 
       quickResults.classList.remove('active');
+      addPurchaseBtn.style.display = 'none';
       purchaseForm.classList.add('active');
       resetForm();
       pName.focus();
@@ -698,6 +699,7 @@
 
     cancelPurchaseBtn.addEventListener('click', () => {
       purchaseForm.classList.remove('active');
+      addPurchaseBtn.style.display = 'block';
       if (currentItems.length === 0) {
         quickResults.classList.add('active');
       }
@@ -724,9 +726,7 @@
       renderPurchases();
 
       purchaseForm.classList.remove('active');
-      if (currentItems.length === 0) {
-        quickResults.classList.add('active');
-      }
+      addPurchaseBtn.style.display = 'block';
       resetForm();
     });
 
