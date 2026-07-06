@@ -281,6 +281,36 @@
     flex: 1;
     margin-top: 0;
   }
+  .autocomplete-list {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    margin-top: 4px;
+    max-height: 180px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    display: none;
+  }
+  .autocomplete-item {
+    padding: 12px 16px;
+    font-size: 15px;
+    color: #1a1a1a;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .autocomplete-item:last-child {
+    border-bottom: none;
+  }
+  .autocomplete-item:active,
+  .autocomplete-item:hover {
+    background: #f0f7ff;
+  }
+  .autocomplete-item small {
+    display: block;
+    color: #888;
+    font-size: 13px;
+    margin-top: 2px;
+  }
 </style>
 </head>
 <body>
@@ -320,7 +350,8 @@
       <h2>Новый товар</h2>
 
       <label for="pName">Название товара</label>
-      <input type="text" id="pName" placeholder="Например, Бумага A4">
+      <input type="text" id="pName" placeholder="Например, Бумага A4" autocomplete="off">
+      <div class="autocomplete-list" id="pNameAutocomplete"></div>
 
       <label for="pAmount" style="margin-top:12px;">Сумма</label>
       <input type="number" id="pAmount" placeholder="0.00 ₸" step="1" inputmode="decimal">
@@ -383,6 +414,7 @@
 
     const purchaseForm = document.getElementById('purchaseForm');
     const pName = document.getElementById('pName');
+    const pNameAutocomplete = document.getElementById('pNameAutocomplete');
     const pAmount = document.getElementById('pAmount');
     const pHasNds = document.getElementById('pHasNds');
     const savePurchaseBtn = document.getElementById('savePurchaseBtn');
@@ -401,6 +433,7 @@
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
     const STORAGE_KEY = 'nds_purchases_v5';
+    const PRODUCTS_KEY = 'nds_products_catalog';
 
     let purchases = [];
     let lastTax = null;
@@ -420,6 +453,60 @@
 
     function savePurchases() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(purchases));
+    }
+
+    function loadProducts() {
+      try {
+        return JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveProducts(catalog) {
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(catalog));
+    }
+
+    function addProductToCatalog(name, amount, hasNds) {
+      const catalog = loadProducts();
+      const existingIndex = catalog.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+      if (existingIndex >= 0) {
+        catalog[existingIndex] = { name, amount, hasNds };
+      } else {
+        catalog.push({ name, amount, hasNds });
+      }
+      saveProducts(catalog);
+    }
+
+    function showAutocomplete(query) {
+      const catalog = loadProducts();
+      const matches = catalog.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+
+      pNameAutocomplete.innerHTML = '';
+      if (query.length === 0 || matches.length === 0) {
+        pNameAutocomplete.style.display = 'none';
+        return;
+      }
+
+      matches.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.innerHTML = `${escapeHtml(p.name)}<small>${fmt(p.amount)}${p.hasNds ? ', с НДС' : ''}</small>`;
+        item.addEventListener('click', () => {
+          pName.value = p.name;
+          pAmount.value = p.amount.toFixed(2);
+          pHasNds.checked = p.hasNds;
+          pNameAutocomplete.style.display = 'none';
+          pAmount.focus();
+        });
+        pNameAutocomplete.appendChild(item);
+      });
+
+      pNameAutocomplete.style.display = 'block';
+    }
+
+    function hideAutocomplete() {
+      pNameAutocomplete.style.display = 'none';
     }
 
     function calculateTaxes(clean) {
@@ -564,6 +651,20 @@
       pName.focus();
     });
 
+    pName.addEventListener('input', () => {
+      showAutocomplete(pName.value.trim());
+    });
+
+    pName.addEventListener('focus', () => {
+      showAutocomplete(pName.value.trim());
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#pName') && !e.target.closest('#pNameAutocomplete')) {
+        hideAutocomplete();
+      }
+    });
+
     cancelPurchaseBtn.addEventListener('click', () => {
       purchaseForm.classList.remove('active');
       quickResults.classList.add('active');
@@ -585,6 +686,7 @@
       const nds = hasNds ? amount * NDS_RATE : 0;
 
       purchases.push({ name, amount: hasNds ? amount : amount, hasNds, nds });
+      addProductToCatalog(name, amount, hasNds);
       savePurchases();
       renderPurchases();
 
