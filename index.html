@@ -591,6 +591,10 @@
         <span class="result-label">Итого:</span>
         <span class="result-value total" id="q-total">0 ₸</span>
       </div>
+      <div class="result-row no-border" id="qWithTaxRow" style="display:none;">
+        <span class="result-label">С учётом налога:</span>
+        <span class="result-value total" id="q-withtax">0 ₸</span>
+      </div>
     </div>
 
     <div class="purchase-list" id="purchaseList">
@@ -687,6 +691,8 @@
     const calcBtn = document.getElementById('calcBtn');
     const quickResults = document.getElementById('quickResults');
     const qTotal = document.getElementById('q-total');
+    const qWithTaxRow = document.getElementById('qWithTaxRow');
+    const qWithTax = document.getElementById('q-withtax');
     const qNds = document.getElementById('q-nds');
     const qKpn = document.getElementById('q-kpn');
     const addPurchaseBtn = document.getElementById('addPurchaseBtn');
@@ -747,7 +753,12 @@
         total = kpnBase;
       }
 
-      return { total, nds, kpn };
+      // Сумма с учётом всех налогов (если налоги не внутри — прибавляем)
+      const withTax = amount
+        + (topNds.checked ? 0 : nds)
+        + (topKpn.checked ? 0 : kpn);
+
+      return { total, nds, kpn, withTax };
     }
 
     function loadPurchases() {
@@ -840,6 +851,15 @@
       qNds.textContent = fmt(tax.nds);
       qKpn.textContent = fmt(tax.kpn);
       qTotal.textContent = fmt(tax.total);
+
+      // «С учётом налога» — только если хотя бы один налог не внутри
+      if (!topNds.checked || !topKpn.checked) {
+        qWithTax.textContent = fmt(tax.withTax);
+        qWithTaxRow.style.display = 'flex';
+      } else {
+        qWithTaxRow.style.display = 'none';
+      }
+
       quickResults.classList.add('active');
       addPurchaseBtn.classList.add('show');
 
