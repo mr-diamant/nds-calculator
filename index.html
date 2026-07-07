@@ -731,37 +731,35 @@
     }
 
     function calculateTaxes(amount) {
-      let nds, kpn, total;
+      let nds, kpn, total, withTax;
 
-      if (topKpn.checked) {
-        // ===== КПН внутри — старая логика =====
-        if (topNds.checked) {
-          nds = amount * NDS_RATE / (1 + NDS_RATE);
-          const kpnBase = amount - nds;
-          kpn = kpnBase * KPN_RATE;
-          total = kpnBase - kpn;
-        } else {
-          nds = amount * 16 / 84;
-          kpn = amount * KPN_RATE;
-          total = amount - kpn;
-        }
-      } else {
-        // ===== КПН не внутри — КПН сверху, НДС от увеличенной базы =====
+      if (topKpn.checked && topNds.checked) {
+        // Оба вкл — старая логика, withTax не нужен
+        nds = amount * NDS_RATE / (1 + NDS_RATE);
+        const kpnBase = amount - nds;
+        kpn = kpnBase * KPN_RATE;
+        total = kpnBase - kpn;
+        withTax = amount;
+      } else if (topKpn.checked && !topNds.checked) {
+        // НДС выкл, КПН вкл
+        nds = amount * 16 / 84;
+        kpn = amount * KPN_RATE;
+        total = amount - kpn;
+        withTax = amount / (1 - NDS_RATE);
+      } else if (!topKpn.checked && topNds.checked) {
+        // НДС вкл, КПН выкл
         kpn = amount * 10 / 90;
         const baseForNds = amount + kpn;
-        if (topNds.checked) {
-          nds = baseForNds * NDS_RATE / (1 + NDS_RATE);
-        } else {
-          nds = baseForNds * 16 / 84;
-        }
-        // КПН не вычитаем (не внутри), НДС вычитаем если внутри
-        total = amount - (topNds.checked ? nds : 0);
+        nds = baseForNds * NDS_RATE / (1 + NDS_RATE);
+        total = amount - nds;
+        withTax = amount / (1 - KPN_RATE);
+      } else {
+        // Оба выкл
+        withTax = amount / 0.9 * 1.16;
+        nds = withTax * 16 / 116;
+        kpn = (withTax - nds) * KPN_RATE;
+        total = amount;
       }
-
-      // Сумма с учётом всех налогов (если налоги не внутри — делим на (1 - ставка))
-      let withTax = amount;
-      if (!topNds.checked) withTax = withTax / (1 - NDS_RATE);
-      if (!topKpn.checked) withTax = withTax / (1 - KPN_RATE);
 
       return { total, nds, kpn, withTax };
     }
