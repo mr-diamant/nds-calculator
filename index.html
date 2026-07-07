@@ -753,10 +753,10 @@
         total = kpnBase;
       }
 
-      // Сумма с учётом всех налогов (если налоги не внутри — прибавляем)
-      const withTax = amount
-        + (topNds.checked ? 0 : nds)
-        + (topKpn.checked ? 0 : kpn);
+      // Сумма с учётом всех налогов (если налоги не внутри — делим на (1 - ставка))
+      let withTax = amount;
+      if (!topNds.checked) withTax = withTax / (1 - NDS_RATE);
+      if (!topKpn.checked) withTax = withTax / (1 - KPN_RATE);
 
       return { total, nds, kpn, withTax };
     }
