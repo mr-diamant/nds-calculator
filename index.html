@@ -731,26 +731,31 @@
     }
 
     function calculateTaxes(amount) {
-      let nds, kpnBase, kpn, total;
-
-      if (topNds.checked) {
-        // НДС внутри — извлекаем
-        nds = amount * NDS_RATE / (1 + NDS_RATE);
-        kpnBase = amount - nds;
-      } else {
-        // НДС не внутри — начисляем сверху (16/84 от суммы)
-        nds = amount * 16 / 84;
-        kpnBase = amount;
-      }
+      let nds, kpn, total;
 
       if (topKpn.checked) {
-        // КПН внутри — вычитаем из базы
-        kpn = kpnBase * KPN_RATE;
-        total = kpnBase - kpn;
+        // ===== КПН внутри — старая логика =====
+        if (topNds.checked) {
+          nds = amount * NDS_RATE / (1 + NDS_RATE);
+          const kpnBase = amount - nds;
+          kpn = kpnBase * KPN_RATE;
+          total = kpnBase - kpn;
+        } else {
+          nds = amount * 16 / 84;
+          kpn = amount * KPN_RATE;
+          total = amount - kpn;
+        }
       } else {
-        // КПН не внутри — начисляем сверху
-        kpn = kpnBase * KPN_RATE;
-        total = kpnBase;
+        // ===== КПН не внутри — КПН сверху, НДС от увеличенной базы =====
+        kpn = amount * 10 / 90;
+        const baseForNds = amount + kpn;
+        if (topNds.checked) {
+          nds = baseForNds * NDS_RATE / (1 + NDS_RATE);
+        } else {
+          nds = baseForNds * 16 / 84;
+        }
+        // КПН не вычитаем (не внутри), НДС вычитаем если внутри
+        total = amount - (topNds.checked ? nds : 0);
       }
 
       // Сумма с учётом всех налогов (если налоги не внутри — делим на (1 - ставка))
