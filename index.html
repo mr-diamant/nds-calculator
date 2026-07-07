@@ -562,14 +562,14 @@
     <div class="form-row switch-inline">
       <div class="switch-group">
         <label class="switch" for="topNds">
-          <input type="checkbox" id="topNds">
+          <input type="checkbox" id="topNds" checked>
           <span class="slider"></span>
         </label>
         <span class="switch-label">НДС внутри</span>
       </div>
       <div class="switch-group">
         <label class="switch" for="topKpn">
-          <input type="checkbox" id="topKpn">
+          <input type="checkbox" id="topKpn" checked>
           <span class="slider"></span>
         </label>
         <span class="switch-label">КПН внутри</span>
@@ -710,6 +710,9 @@
     const finalKpn = document.getElementById('finalKpn');
     const finalProfit = document.getElementById('finalProfit');
 
+    const topNds = document.getElementById('topNds');
+    const topKpn = document.getElementById('topKpn');
+
     const NDS_RATE = 0.16;
     const KPN_RATE = 0.10;
     const STORAGE_KEY = 'nds_purchases_v5';
@@ -719,6 +722,32 @@
 
     function fmt(num) {
       return num.toLocaleString('ru-KZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₸';
+    }
+
+    function calculateTaxes(amount) {
+      let nds, kpnBase, kpn, total;
+
+      if (topNds.checked) {
+        // НДС внутри — извлекаем
+        nds = amount * NDS_RATE / (1 + NDS_RATE);
+        kpnBase = amount - nds;
+      } else {
+        // НДС не внутри — начисляем сверху
+        nds = amount * NDS_RATE;
+        kpnBase = amount;
+      }
+
+      if (topKpn.checked) {
+        // КПН внутри — вычитаем из базы
+        kpn = kpnBase * KPN_RATE;
+        total = kpnBase - kpn;
+      } else {
+        // КПН не внутри — начисляем сверху
+        kpn = kpnBase * KPN_RATE;
+        total = kpnBase;
+      }
+
+      return { total, nds, kpn };
     }
 
     function loadPurchases() {
@@ -798,14 +827,6 @@
 
     function hideAutocomplete() {
       pNameAutocomplete.style.display = 'none';
-    }
-
-    function calculateTaxes(amount) {
-      const nds = amount * NDS_RATE / (1 + NDS_RATE);
-      const kpnBase = amount - nds;
-      const kpn = kpnBase * KPN_RATE;
-      const total = amount - nds - kpn;
-      return { total, nds, kpn };
     }
 
     function quickCalculate() {
@@ -926,6 +947,16 @@
 
     calcBtn.addEventListener('click', () => {
       quickCalculate();
+    });
+
+    topNds.addEventListener('change', () => {
+      if (quickResults.classList.contains('active')) quickCalculate();
+      updateFinalTotals();
+    });
+
+    topKpn.addEventListener('change', () => {
+      if (quickResults.classList.contains('active')) quickCalculate();
+      updateFinalTotals();
     });
 
     amountInput.addEventListener('keypress', (e) => {
