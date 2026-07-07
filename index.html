@@ -738,8 +738,8 @@
         nds = amount * NDS_RATE / (1 + NDS_RATE);
         kpnBase = amount - nds;
       } else {
-        // НДС не внутри — начисляем сверху
-        nds = amount * NDS_RATE;
+        // НДС не внутри — начисляем сверху (16/84 от суммы)
+        nds = amount * 16 / 84;
         kpnBase = amount;
       }
 
