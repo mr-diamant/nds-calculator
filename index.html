@@ -588,6 +588,10 @@
         <span class="result-value" id="q-kpn">0 ₸</span>
       </div>
       <div class="result-row no-border">
+        <span class="result-label">Стоимость без НДС:</span>
+        <span class="result-value" id="q-noNds">0 ₸</span>
+      </div>
+      <div class="result-row no-border">
         <span class="result-label">Итого:</span>
         <span class="result-value total" id="q-total">0 ₸</span>
       </div>
@@ -691,6 +695,7 @@
     const calcBtn = document.getElementById('calcBtn');
     const quickResults = document.getElementById('quickResults');
     const qTotal = document.getElementById('q-total');
+    const qNoNds = document.getElementById('q-noNds');
     const qWithTaxRow = document.getElementById('qWithTaxRow');
     const qWithTax = document.getElementById('q-withtax');
     const qNds = document.getElementById('q-nds');
@@ -731,7 +736,7 @@
     }
 
     function calculateTaxes(amount) {
-      let nds, kpn, total, withTax;
+      let nds, kpn, total, withTax, noNds;
 
       if (topKpn.checked && topNds.checked) {
         // Оба вкл — старая логика, withTax не нужен
@@ -740,12 +745,14 @@
         kpn = kpnBase * KPN_RATE;
         total = kpnBase - kpn;
         withTax = amount;
+        noNds = amount - nds;
       } else if (topKpn.checked && !topNds.checked) {
         // НДС выкл, КПН вкл — НДС 16% сверху, КПН внутри
         nds = amount * NDS_RATE;
         kpn = amount * KPN_RATE;
         total = amount - kpn;
         withTax = amount * (1 + NDS_RATE);
+        noNds = amount;
       } else if (!topKpn.checked && topNds.checked) {
         // НДС вкл, КПН выкл
         kpn = amount * 10 / 90;
@@ -753,15 +760,17 @@
         nds = baseForNds * NDS_RATE / (1 + NDS_RATE);
         total = amount - nds;
         withTax = amount / (1 - KPN_RATE);
+        noNds = amount - nds;
       } else {
         // Оба выкл
         withTax = amount / 0.9 * 1.16;
         nds = withTax * 16 / 116;
         kpn = (withTax - nds) * KPN_RATE;
         total = amount;
+        noNds = amount;
       }
 
-      return { total, nds, kpn, withTax };
+      return { total, nds, kpn, withTax, noNds };
     }
 
     function loadPurchases() {
@@ -853,6 +862,7 @@
       const tax = calculateTaxes(amount);
       qNds.textContent = fmt(tax.nds);
       qKpn.textContent = fmt(tax.kpn);
+      qNoNds.textContent = fmt(tax.noNds);
       qTotal.textContent = fmt(tax.total);
 
       // «С учётом налога» — только если хотя бы один налог не внутри
