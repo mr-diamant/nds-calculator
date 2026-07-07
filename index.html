@@ -741,11 +741,11 @@
         total = kpnBase - kpn;
         withTax = amount;
       } else if (topKpn.checked && !topNds.checked) {
-        // НДС выкл, КПН вкл — НДС извлекаем: Сумма * 16 / 116
-        nds = amount * 16 / 116;
+        // НДС выкл, КПН вкл — НДС 16% сверху, КПН внутри
+        nds = amount * NDS_RATE;
         kpn = amount * KPN_RATE;
         total = amount - kpn;
-        withTax = amount / (1 - NDS_RATE);
+        withTax = amount * (1 + NDS_RATE);
       } else if (!topKpn.checked && topNds.checked) {
         // НДС вкл, КПН выкл
         kpn = amount * 10 / 90;
