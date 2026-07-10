@@ -355,6 +355,38 @@
     color: var(--text-primary);
   }
 
+  /* ===== Copyable result values ===== */
+  .result-value.copyable {
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .result-value.copyable:active {
+    opacity: 0.5;
+    transform: scale(0.97);
+  }
+  .copy-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text-primary);
+    color: var(--card-bg);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .copy-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
   .result-value.positive {
     color: var(--positive);
   }
@@ -581,25 +613,26 @@
     <div class="results" id="quickResults">
       <div class="result-row">
         <span class="result-label">НДС (16%):</span>
-        <span class="result-value" id="q-nds">0 ₸</span>
+        <span class="result-value copyable" id="q-nds">0 ₸</span>
       </div>
       <div class="result-row no-border">
         <span class="result-label">КПН (10%):</span>
-        <span class="result-value" id="q-kpn">0 ₸</span>
+        <span class="result-value copyable" id="q-kpn">0 ₸</span>
       </div>
       <div class="result-row no-border">
         <span class="result-label">Стоимость без НДС:</span>
-        <span class="result-value" id="q-noNds">0 ₸</span>
+        <span class="result-value copyable" id="q-noNds">0 ₸</span>
       </div>
       <div class="result-row no-border">
         <span class="result-label">Итого:</span>
-        <span class="result-value total" id="q-total">0 ₸</span>
+        <span class="result-value total copyable" id="q-total">0 ₸</span>
       </div>
       <div class="result-row no-border" id="qWithTaxRow" style="display:none;">
         <span class="result-label">С учётом налога:</span>
-        <span class="result-value total" id="q-withtax">0 ₸</span>
+        <span class="result-value total copyable" id="q-withtax">0 ₸</span>
       </div>
     </div>
+    <div class="copy-toast" id="copyToast">Скопировано</div>
 
     <div class="purchase-list" id="purchaseList">
       <h2 id="listTitle" style="display:none;">Товары</h2>
@@ -1068,6 +1101,45 @@
       purchaseForm.classList.remove('active');
       addPurchaseBtn.classList.add('show');
       resetForm();
+    });
+
+    // ===== Copy result row to clipboard =====
+    const copyToast = document.getElementById('copyToast');
+    let toastTimer = null;
+
+    function copyRowToClipboard(valueEl) {
+      const row = valueEl.closest('.result-row');
+      if (!row) return;
+      const label = row.querySelector('.result-label');
+      const text = (label ? label.textContent.trim() : '') + ' ' + valueEl.textContent.trim();
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(showToast).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta);
+      showToast();
+    }
+
+    function showToast() {
+      copyToast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => copyToast.classList.remove('show'), 1500);
+    }
+
+    document.querySelectorAll('.result-value.copyable').forEach(el => {
+      el.addEventListener('click', () => copyRowToClipboard(el));
     });
 
     loadPurchases();
